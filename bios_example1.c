@@ -7,7 +7,7 @@ void bootfunc() {
 
 int main()
 {
-  vm_boot(bootfunc, 4, 0);
+  vm_boot(bootfunc, 4, 0); // 4 cores, no terminals - max 32 and 4 respectively
   return 0;
 }
 
