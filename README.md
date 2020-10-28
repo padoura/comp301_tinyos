@@ -49,5 +49,16 @@ Working with the code, at the basic level, requires a recent GCC compiler (with 
 standard packages `doxygen` and `valgrind` with their dependencies (e.g., `graphviz`) are also needed 
 for anything serious, as well as the GDB debugger.
 
+### Regression testing
 
+A regression test wrapper of `validate_api` is provided in this implementation. Simply use the following command:
 
+```
+regression/run.sh {suite}
+```
+
+where `{suite}` is one of the suites provided by `validate_api`. If a difference is found between the "golden" result and
+the current one, the user is prompted to decide whether to replace the golden file with the current results.
+
+Note that `colordiff` is required for this wrapper. If someone does not wish to install it, it can easily be replaced 
+by `diff` without a loss in functionality.
