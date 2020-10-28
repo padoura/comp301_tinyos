@@ -60,7 +60,39 @@ typedef struct process_control_block {
 
   FCB* FIDT[MAX_FILEID];  /**< @brief The fileid table of the process */
 
+  rlnode ptcb_list;       /**< @brief List of PTCBs */
+  int thread_count;       /**< @brief Number of items in @c ptcb_list*/
+
 } PCB;
+
+
+/**
+  @brief Process Thread Control Block.
+
+  This structure holds all information pertaining to a thread of a multithreaded process
+ */
+typedef struct process_thread_control_block {
+
+  TCB* tcb;               /**< @brief The referred tcb */
+  int exitval;            /**< @brief The exit value of the thread */
+
+  Task task;              /**< @brief The thread's function */
+  int argl;               /**< @brief The thread's argument length */
+  void* args;             /**< @brief The thread's argument string */
+
+  CondVar exit_cv;        /**< @brief Condition variable for @c TODO.
+  
+                             This condition variable is  broadcast each time a
+                             joined thread exits.*/
+
+  int exited;             /**< @brief Boolean (0, 1) for thread's exit status */
+  int detached;           /**< @brief Boolean (0, 1) for thread's unjoinable status */
+
+  int refcount;           /**< @brief TODO */
+
+  rlnode ptcb_list_node;  /**< @brief Intrusive node for the process' @c ptcb_list */
+
+} PTCB;
 
 
 /**
