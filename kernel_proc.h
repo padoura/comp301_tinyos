@@ -88,7 +88,10 @@ typedef struct process_thread_control_block {
   int exited;             /**< @brief Boolean (0, 1) for thread's exit status */
   int detached;           /**< @brief Boolean (0, 1) for thread's unjoinable status */
 
-  int refcount;           /**< @brief TODO */
+  int refcount;           /**< @brief Reference counter for other threads waiting this one.
+  
+  
+                           This counter is incremented when a thread join with this thread succeeds.*/
 
   rlnode ptcb_list_node;  /**< @brief Intrusive node for the process' @c ptcb_list */
 
