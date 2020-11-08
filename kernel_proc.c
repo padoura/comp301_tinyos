@@ -331,11 +331,11 @@ void sys_Exit(int exitval)
   curproc->main_thread = NULL;
 
   /* Now, mark the process as exited. */
-  curproc->pstate = ZOMBIE;
+  curproc->pstate = ZOMBIE; // ΖΟΜΒΙΕs are later cleaned by the kernel
   curproc->exitval = exitval;
 
   /* Bye-bye cruel world */
-  kernel_sleep(EXITED, SCHED_USER);
+  kernel_sleep(EXITED, SCHED_USER); //  set current thread's status to EXITED and let it be deleted in the following gain()
 }
 
 
