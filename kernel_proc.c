@@ -3,6 +3,7 @@
 #include "kernel_cc.h"
 #include "kernel_proc.h"
 #include "kernel_streams.h"
+#include "kernel_threads.h"
 
 
 /* 
@@ -44,6 +45,9 @@ static inline void initialize_PCB(PCB* pcb)
   rlnode_init(& pcb->children_node, pcb);
   rlnode_init(& pcb->exited_node, pcb);
   pcb->child_exit = COND_INIT;
+  
+  rlnode_init(& pcb->ptcb_list, NULL);
+  pcb->thread_count = 0;
 }
 
 
@@ -179,6 +183,8 @@ Pid_t sys_Exec(Task call, int argl, void* args)
    */
   if(call != NULL) {
     newproc->main_thread = spawn_thread(newproc, start_main_thread);
+    PTCB* ptcb = initialize_ptcb(newproc->main_thread, call, argl, args);
+    update_pcb_owner(ptcb);
     wakeup(newproc->main_thread);
   }
 
