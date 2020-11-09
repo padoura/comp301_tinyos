@@ -1,0 +1,40 @@
+running suite: user_tests
+        dummy_user_test                                                       : ok
+        validate_api.c(2319): ASSERT failed: flag==1 
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_thread                                   [cores= 1,term=0]: *** FAILED ***
+        validate_api.c(2319): ASSERT failed: flag==1 
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_thread                                   [cores= 1,term=1]: *** FAILED ***
+        validate_api.c(2319): ASSERT failed: flag==1 
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_thread                                   [cores= 1,term=2]: *** FAILED ***
+        validate_api.c(2319): ASSERT failed: flag==1 
+flag == 0
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_thread                                   [cores= 2,term=0]: *** FAILED ***
+        validate_api.c(2319): ASSERT fflag == 0
+ailed: flag==1 
+validate_api: kernel_sched.c:103: thread_start: Assertion `0' failed.
+        Test crashed, signal=6 (Aborted)
+        test_create_thread                                   [cores= 2,term=1]: *** FAILED ***
+        validate_api.c(2319): Aflag == 0
+SSERT validate_api: kernel_sched.c:103: thread_start: Assertion `0' failed.
+failed: flag==1 
+        Test crashed, signal=6 (Aborted)
+        test_create_thread                                   [cores= 2,term=2]: *** FAILED ***
+        validate_apiflag == 0
+.c(2319): ASSERT failed: flag==1 
+validate_api: kernel_sched.c:103: thread_start: Assertion `0' failed.
+        Test crashed, signal=6 (Aborted)
+        test_create_thread                                   [cores= 4,term=0]: *** FAILED ***
+      flag == 0
+  validate_api.c(2319validate_api: kernel_sched.c:103: thread_start: Assertion `0' failed.
+): ASSERT failed        Test crashed, signal=6 (Aborted)
+        test_create_thread                                   [cores= 4,term=1]: *** FAILED ***
+        validate_api.c(2319): ASSERT failed: flag==1 
+flag == 0
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_thread                                   [cores= 4,term=2]: *** FAILED ***
+        suite user_tests completed [tests=2, failed=1]
+user_tests                                                            : *** FAILED ***

@@ -2299,12 +2299,34 @@ BARE_TEST(dummy_user_test,
 	ASSERT(1+1==2);
 }
 
+BOOT_TEST(test_create_thread,
+	"Test that a process thread can be created. Also, that "
+	"the argument of the thread is passed correctly."
+	)
+{
+	int flag = 0;
+
+	int task(int argl, void* args) {
+		fprintf(stderr,"flag == %d\n",flag);
+		ASSERT(args == &flag);
+		*(int*)args = 1;
+		return 2;
+	}
+
+	Tid_t t = CreateThread(task, sizeof(flag), &flag);
+	ASSERT(t!=NOTHREAD);
+	// int exitval;
+	ASSERT(flag==1);
+	return 0;
+};
+
 
 TEST_SUITE(user_tests, 
 	"These are tests defined by the user."
 	)
 {
 	&dummy_user_test,
+	&test_create_thread,
 	NULL
 };
 
