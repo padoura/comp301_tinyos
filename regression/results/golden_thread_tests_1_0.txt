@@ -1,0 +1,44 @@
+running suite: thread_tests
+        test_join_illegal_tid_gives_error                    [cores= 1,term=0]: ok
+        test_detach_illegal_tid_gives_error                  [cores= 1,term=0]: ok
+        validate_api.c(1000): ASSERT failed: ThreadDetach(ThreadSelf())==0 
+        Test crashed, signal=6 (Aborted)
+        test_detach_self                                     [cores= 1,term=0]: *** FAILED ***
+        validate_api.c(1016): ASSERT failed: ThreadDetach(t)==0 
+        Test crashed, signal=6 (Aborted)
+        test_detach_other                                    [cores= 1,term=0]: *** FAILED ***
+        test_multiple_detach                                 [cores= 1,term=0]: ok
+        validate_api.c(1088): ASSERT failed: ThreadJoin(mttid, NULL)==0 
+        Test crashed, signal=6 (Aborted)
+        test_join_main_thread                                [cores= 1,term=0]: *** FAILED ***
+        test_detach_main_thread                              [cores= 1,term=0]: ok
+        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        Test crashed, signal=11 (Segmentation fault)
+        test_detach_after_join                               [cores= 1,term=0]: *** FAILED ***
+        validate_api.c(992): ASSERT failed: ThreadJoin(t, &exitval)==0 
+        validate_api.c(993): ASSERT failed: flag==1 
+        Test crashed, signal=11 (Segmentation fault)
+        test_create_join_thread                              [cores= 1,term=0]: *** FAILED ***
+        validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1076): ASSERT failed: some_thread_joined 
+        Test crashed, signal=11 (Segmentation fault)
+        test_join_many_threads                               [cores= 1,term=0]: *** FAILED ***
+        test_exit_many_threads                               [cores= 1,term=0]: ok
+        test_main_exit_cleanup                               [cores= 1,term=0]: ok
+        test_noexit_cleanup                                  [cores= 1,term=0]: ok
+        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        Test crashed, signal=6 (Aborted)
+        test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
+        suite thread_tests completed [tests=14, failed=7]
+thread_tests                                                          : *** FAILED ***
