@@ -1035,12 +1035,12 @@ BOOT_TEST(test_detach_after_join,
 	}
 
 	Tid_t joined_tid = CreateThread(joined_thread, 0, NULL);
-
+	ASSERT(joined_tid!=NOTHREAD);
 	int joiner_thread(int argl, void* args) {
 		int retval;
 		int rc = ThreadJoin(joined_tid,&retval);
 		ASSERT(rc==-1);
-		ASSERT(ThreadDetach(ThreadSelf()));
+		ASSERT(ThreadDetach(ThreadSelf())==0  );
 		return 0;
 	}
 
@@ -1098,7 +1098,7 @@ BOOT_TEST(test_cyclic_joins,
 	"Test that a set of cyclically joined threads will not deadlock once the cycle breaks")
 {
 	const unsigned int N=5;
-	barrier B;
+	barrier B=BARRIER_INIT;
 	Tid_t tids[N];
 
 	int join_thread(int argl, void* args) {
@@ -2299,26 +2299,25 @@ BARE_TEST(dummy_user_test,
 	ASSERT(1+1==2);
 }
 
+int task(int argl, void* args) {
+	// fprintf(stderr,"flag == %d\n",flag);
+	ASSERT(args == &task);
+	// *(int*)args = 1;
+	return 2;
+}
+
 BOOT_TEST(test_create_thread,
 	"Test that a process thread can be created. Also, that "
 	"the argument of the thread is passed correctly."
 	)
 {
-	int flag = 0;
 
-	int task(int argl, void* args) {
-		fprintf(stderr,"flag == %d\n",flag);
-		ASSERT(args == &flag);
-		*(int*)args = 1;
-		return 2;
-	}
-
-	Tid_t t = CreateThread(task, sizeof(flag), &flag);
+	Tid_t t = CreateThread(task, 42, &task);
 	ASSERT(t!=NOTHREAD);
-	// int exitval;
-	ASSERT(flag==1);
 	return 0;
 };
+
+
 
 
 TEST_SUITE(user_tests, 
