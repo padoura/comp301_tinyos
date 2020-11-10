@@ -6,7 +6,7 @@
 /*
   Initialize and return a new PTCB.
 */
-PTCB* initialize_ptcb(TCB* tcb, Task call, int argl, void* args);
+PTCB* initialize_ptcb(Task call, int argl, void* args);
 
-void update_pcb_owner(PTCB* ptcb);
+void update_pcb_owner(PTCB** ptcb);
 

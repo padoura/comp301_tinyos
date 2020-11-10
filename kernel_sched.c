@@ -97,6 +97,7 @@ void gain(int preempt); /* forward */
 static void thread_start()
 {
 	gain(1);
+	
 	CURTHREAD->thread_func();
 
 	/* We are not supposed to get here! */
