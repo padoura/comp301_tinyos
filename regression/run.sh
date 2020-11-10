@@ -1,5 +1,5 @@
 #!/bin/bash
-make clean
+# make clean
 make
 
 if [[ -z $1 ]]; then
@@ -10,7 +10,7 @@ fi
 
 echo "Testing suite $suite..."
 
-./validate_api -c 1,2,4 -t 0,1,2 $suite > regression/results/results_$suite.txt 2>&1
+./validate_api -c 1,2,4 -t 0 $suite > regression/results/results_$suite.txt 2>&1
 
 if [ ! -f regression/results/golden_$suite.txt ]; then
     echo "" > regression/results/golden_$suite.txt
