@@ -56,11 +56,13 @@ else
     read isGolden
     isGolden=${isGolden:-n}
 
-    if [ "$isGolden" == "y" ]; then
-        mv regression/results/results_$fileId.txt regression/results/golden_$fileId.txt
-        echo "Golden replaced"
-    else
-        echo "Golden not replaced"
+    if [[ !("$6" == "--rerun") ]]; then
+        if [ "$isGolden" == "y" ]; then
+            mv regression/results/results_$fileId.txt regression/results/golden_$fileId.txt
+            echo "Golden replaced"
+        else
+            echo "Golden not replaced"
+        fi
     fi
 fi
 
