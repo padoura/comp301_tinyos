@@ -11,3 +11,4 @@ test_example
 doc/
 kbd*
 con*
+*results_*.txt
