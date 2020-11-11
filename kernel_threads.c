@@ -109,7 +109,7 @@ int sys_ThreadJoin(Tid_t tid, int* exitval)
 int sys_ThreadDetach(Tid_t tid)
 {
   rlnode *node = rlist_find((&CURPROC->ptcb_list), (PTCB*)tid, NULL);
-  if(node == NULL || node->ptcb->exited == 1 || node->ptcb->detached == 1) return -1;
+  if(node == NULL || node->ptcb->exited == 1) return -1;
   (node->ptcb)->detached = 1;
   kernel_broadcast(&node->ptcb->exit_cv);
   return 0;

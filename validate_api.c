@@ -1029,10 +1029,10 @@ BOOT_TEST(test_detach_other,
 BOOT_TEST(test_multiple_detach,
 	"Test that a thread can be detached many times.")
 {
-	ASSERT(ThreadDetach(ThreadSelf()));
-	ASSERT(ThreadDetach(ThreadSelf()));
-	ASSERT(ThreadDetach(ThreadSelf()));
-	ASSERT(ThreadDetach(ThreadSelf()));
+	ASSERT(ThreadDetach(ThreadSelf())== 0);
+	ASSERT(ThreadDetach(ThreadSelf())== 0);
+	ASSERT(ThreadDetach(ThreadSelf())== 0);
+	ASSERT(ThreadDetach(ThreadSelf())== 0);
 
 	return 0;
 }

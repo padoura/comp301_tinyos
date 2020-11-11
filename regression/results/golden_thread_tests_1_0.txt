@@ -3,9 +3,7 @@ running suite: thread_tests
         test_detach_illegal_tid_gives_error                  [cores= 1,term=0]: ok
         test_detach_self                                     [cores= 1,term=0]: ok
         test_detach_other                                    [cores= 1,term=0]: ok
-        validate_api.c(1032): ASSERT failed: ThreadDetach(ThreadSelf()) 
-        Test crashed, signal=6 (Aborted)
-        test_multiple_detach                                 [cores= 1,term=0]: *** FAILED ***
+        test_multiple_detach                                 [cores= 1,term=0]: ok
         validate_api.c(1088): ASSERT failed: ThreadJoin(mttid, NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_join_main_thread                                [cores= 1,term=0]: *** FAILED ***
@@ -43,5 +41,5 @@ running suite: thread_tests
         validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
-        suite thread_tests completed [tests=14, failed=6]
+        suite thread_tests completed [tests=14, failed=5]
 thread_tests                                                          : *** FAILED ***
