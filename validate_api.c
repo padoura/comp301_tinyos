@@ -1146,16 +1146,20 @@ BOOT_TEST(test_detach_after_join,
 
 	Tid_t joined_tid = CreateThread(joined_thread, 0, NULL);
 
+	int time[5] = {1, 2, 3, 4, 5};
+
 	int joiner_thread(int argl, void* args) {
 		int retval;
 		int rc = ThreadJoin(joined_tid,&retval);
+		fprintf(stderr, "secondary threads with rc=%d\n", argl);
 		ASSERT(rc==-1);
+		sleep_thread(argl);
 		return 0;
 	}
 
 	Tid_t tids[5];
 	for(int i=0;i<5;i++) {
-		tids[i] = CreateThread(joiner_thread,0,NULL);
+		tids[i] = CreateThread(joiner_thread,time[i],NULL);
 		ASSERT(tids[i]!=NOTHREAD);
 	}
 
