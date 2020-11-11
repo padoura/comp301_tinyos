@@ -283,15 +283,33 @@ static void sched_wakeup_expired_timeouts()
 }
 
 /*
-  Remove the head of the scheduler list, if any, and
+  Find the first non-empty scheduler list, with backwards iteration.
+
+  *** MUST BE CALLED WITH sched_spinlock HELD ***
+*/
+
+static int find_first_non_empty(){
+	int first_non_empty = MFQ_LEVEL_NUM-1;
+	for(int i=first_non_empty;i>=0;i--){
+		if (is_rlist_empty(&SCHED[i])==0){
+			first_non_empty=i;
+		}
+	}
+	return first_non_empty;
+}
+
+/*
+  Remove the head of the first (backward search) 
+  non-empty scheduler list, if any, and
   return it. Return NULL if the list is empty.
 
   *** MUST BE CALLED WITH sched_spinlock HELD ***
 */
 static TCB* sched_queue_select(TCB* current)
 {
-	/* Get the head of the SCHED list */
-	rlnode* sel = rlist_pop_front(&SCHED[current->priority]);
+	/* Get the head of the first non-empty SCHED list */
+	int first_non_empty = find_first_non_empty();
+	rlnode* sel = rlist_pop_front(&SCHED[first_non_empty]);
 
 	TCB* next_thread = sel->tcb; /* When the list is empty, this is NULL */
 
