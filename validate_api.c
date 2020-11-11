@@ -1111,7 +1111,7 @@ BOOT_TEST(test_detach_main_thread,
 	Tid_t mttid;
 
 	int notmain_thread(int argl, void* args) {
-		ASSERT(ThreadJoin(mttid, NULL)==-1);
+		ASSERT(ThreadJoin(mttid, NULL)==0);
 		return 0;
 	}
 
@@ -1147,7 +1147,7 @@ BOOT_TEST(test_detach_after_join,
 	int joiner_thread(int argl, void* args) {
 		int retval;
 		int rc = ThreadJoin(joined_tid,&retval);
-		ASSERT(rc==-1);
+		ASSERT(rc==0);
 		return 0;
 	}
 
