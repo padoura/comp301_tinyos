@@ -10,11 +10,11 @@ running suite: thread_tests
         validate_api.c(1114): ASSERT failed: ThreadJoin(mttid, NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_detach_main_thread                              [cores= 1,term=0]: *** FAILED ***
-        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=11 (Segmentation fault)
         test_detach_after_join                               [cores= 1,term=0]: *** FAILED ***
         validate_api.c(992): ASSERT failed: ThreadJoin(t, &exitval)==0 
@@ -37,10 +37,10 @@ running suite: thread_tests
         test_exit_many_threads                               [cores= 1,term=0]: ok
         test_main_exit_cleanup                               [cores= 1,term=0]: ok
         test_noexit_cleanup                                  [cores= 1,term=0]: ok
-        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
         suite thread_tests completed [tests=14, failed=6]
