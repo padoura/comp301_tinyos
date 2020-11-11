@@ -45,6 +45,11 @@
 volatile unsigned int active_threads = 0;
 Mutex active_threads_spinlock = MUTEX_INIT;
 
+/* Multilevel Feedback Queue parameters */
+volatile unsigned int update_thread_priority_counter = 0;
+#define MFQ_LEVEL_NUM 3
+#define GLOB_PRIORITY_INCR_THRES 5
+
 /* This is specific to Intel Pentium! */
 #define SYSTEM_PAGE_SIZE (1 << 12)
 
@@ -53,6 +58,8 @@ Mutex active_threads_spinlock = MUTEX_INIT;
 	(((sizeof(TCB) + SYSTEM_PAGE_SIZE - 1) / SYSTEM_PAGE_SIZE) * SYSTEM_PAGE_SIZE)
 
 #define THREAD_SIZE (THREAD_TCB_SIZE + THREAD_STACK_SIZE)
+
+
 
 //#define MMAPPED_THREAD_MEM
 #ifdef MMAPPED_THREAD_MEM
@@ -108,7 +115,6 @@ static void thread_start()
   Initialize and return a new TCB
 */
 
-#define MFQ_LEVEL_NUM 10
 TCB* spawn_thread(PCB* pcb, void (*func)())
 {
 	/* The allocated thread size must be a multiple of page size */
@@ -383,6 +389,63 @@ void sleep_releasing(Thread_state state, Mutex* mx, enum SCHED_CAUSE cause,
 		preempt_on;
 }
 
+void move_down_curthread(){
+	if (CURTHREAD->priority > 0){
+		rlist_remove(&CURTHREAD->sched_node);
+		CURTHREAD->priority--;
+		rlist_push_back(&SCHED[CURTHREAD->priority], &CURTHREAD->sched_node);
+	}
+}
+
+void move_up_curthread(){
+	if (CURTHREAD->priority < MFQ_LEVEL_NUM-1){
+		rlist_remove(&CURTHREAD->sched_node);
+		CURTHREAD->priority++;
+		rlist_push_back(&SCHED[CURTHREAD->priority], &CURTHREAD->sched_node);
+	}
+}
+
+void thread_priority_increment_all(rlnode* list){
+	rlnode* p = list->next;
+	while(p!=list) {
+		p->tcb->priority++;
+		p = p->next;
+	}
+}
+
+void move_up_all_threads(){
+	for(int i=0;i<MFQ_LEVEL_NUM-1;i++){
+		rlist_append(&SCHED[i+1], &SCHED[i]);
+		thread_priority_increment_all(&SCHED[i+1]);
+	}
+}
+
+void update_thread_priority(){
+
+	update_thread_priority_counter++;
+
+	switch (CURTHREAD->curr_cause){
+		case SCHED_QUANTUM:
+			move_down_curthread();
+			break;
+		case SCHED_IO:
+			move_up_curthread();
+			break;
+		case SCHED_MUTEX:
+			if (CURTHREAD->last_cause == SCHED_MUTEX)
+				move_down_curthread();
+			break;
+		default:
+			if (update_thread_priority_counter == GLOB_PRIORITY_INCR_THRES){
+				move_up_all_threads();
+				update_thread_priority_counter = 0;
+			}
+			break;
+	}
+
+}
+
+
 /* This function is the entry point to the scheduler's context switching */
 
 void yield(enum SCHED_CAUSE cause)
@@ -405,6 +468,8 @@ void yield(enum SCHED_CAUSE cause)
 	current->rts = remaining;
 	current->last_cause = current->curr_cause;
 	current->curr_cause = cause;
+
+	update_thread_priority();
 
 	/* Wake up threads whose sleep timeout has expired */
 	sched_wakeup_expired_timeouts();
