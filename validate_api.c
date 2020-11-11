@@ -1092,6 +1092,7 @@ BOOT_TEST(test_join_main_thread,
 	int main_thread(int argl, void* args) {
 		mttid = ThreadSelf();
 		ASSERT(CreateThread(notmain_thread,0,NULL)!=NOTHREAD);
+		sleep_thread(1);
 		return 42;
 	}
 

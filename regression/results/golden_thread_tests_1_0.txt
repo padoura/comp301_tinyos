@@ -4,16 +4,12 @@ running suite: thread_tests
         test_detach_self                                     [cores= 1,term=0]: ok
         test_detach_other                                    [cores= 1,term=0]: ok
         test_multiple_detach                                 [cores= 1,term=0]: ok
-        validate_api.c(1088): ASSERT failed: ThreadJoin(mttid, NULL)==0 
-        Test crashed, signal=6 (Aborted)
-        test_join_main_thread                                [cores= 1,term=0]: *** FAILED ***
-        validate_api.c(1114): ASSERT failed: ThreadJoin(mttid, NULL)==0 
-        Test crashed, signal=6 (Aborted)
-        test_detach_main_thread                              [cores= 1,term=0]: *** FAILED ***
-        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1162): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        test_join_main_thread                                [cores= 1,term=0]: ok
+        test_detach_main_thread                              [cores= 1,term=0]: ok
+        validate_api.c(1163): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1163): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1163): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1163): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_detach_after_join                               [cores= 1,term=0]: *** FAILED ***
         test_create_join_thread                              [cores= 1,term=0]: ok
@@ -26,10 +22,10 @@ running suite: thread_tests
         test_exit_many_threads                               [cores= 1,term=0]: ok
         test_main_exit_cleanup                               [cores= 1,term=0]: ok
         test_noexit_cleanup                                  [cores= 1,term=0]: ok
-        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
-        validate_api.c(1284): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1285): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1285): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1285): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
-        suite thread_tests completed [tests=14, failed=5]
+        suite thread_tests completed [tests=14, failed=3]
 thread_tests                                                          : *** FAILED ***
