@@ -7,7 +7,9 @@ running suite: thread_tests
         validate_api.c(1088): ASSERT failed: ThreadJoin(mttid, NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_join_main_thread                                [cores= 1,term=0]: *** FAILED ***
-        test_detach_main_thread                              [cores= 1,term=0]: ok
+        validate_api.c(1114): ASSERT failed: ThreadJoin(mttid, NULL)==0 
+        Test crashed, signal=6 (Aborted)
+        test_detach_main_thread                              [cores= 1,term=0]: *** FAILED ***
         validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         validate_api.c(1161): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
@@ -41,5 +43,5 @@ running suite: thread_tests
         validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
-        suite thread_tests completed [tests=14, failed=5]
+        suite thread_tests completed [tests=14, failed=6]
 thread_tests                                                          : *** FAILED ***
