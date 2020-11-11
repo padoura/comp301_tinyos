@@ -87,6 +87,15 @@ Tid_t sys_ThreadSelf()
 	return CURTHREAD==NULL ? NOTHREAD : (Tid_t) CURTHREAD->ptcb;
 }
 
+
+void ptcb_refcount_decrement(PTCB* ptcb){
+  ptcb->refcount--;
+
+  if (ptcb->refcount == 0){ // PTCB no longer needed
+    free(ptcb);
+  }
+}
+
 /**
   @brief Join the given thread.
 
@@ -97,7 +106,19 @@ Tid_t sys_ThreadSelf()
   */
 int sys_ThreadJoin(Tid_t tid, int* exitval)
 {
-	return -1;
+  rlnode *node = rlist_find((&CURPROC->ptcb_list), (PTCB*)tid, NULL);
+  if(node == NULL || node->ptcb->exited == 1 || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
+      return -1;
+  node->ptcb->refcount++;
+  while(node->ptcb->exited != 1 && node->ptcb->detached != 1){
+    kernel_wait(&(CURTHREAD->ptcb->exit_cv), SCHED_USER);
+    if(node->ptcb->detached == 1)
+      return -1;
+  }
+  if(node->ptcb->exited == 1 && exitval != NULL)
+    *exitval = node->ptcb->exitval;
+  ptcb_refcount_decrement(node->ptcb);
+  return 0;
 }
 
 /**
@@ -115,13 +136,6 @@ int sys_ThreadDetach(Tid_t tid)
   return 0;
 }
 
-void ptcb_refcount_decrement(PTCB* ptcb){
-  ptcb->refcount--;
-
-  if (ptcb->refcount == 0){ // PTCB no longer needed
-    free(ptcb);
-  }
-}
 
 /**
   @brief Terminate the current thread.
@@ -137,11 +151,13 @@ void sys_ThreadExit(int exitval)
   ptcb->exitval = exitval;
 
   ptcb->exited = 1;
+  //fprintf(stderr, "%d check refcount\n", ptcb->refcount);
   if (ptcb->refcount > 1){ // there are other threads waiting for this, wake them up
     kernel_broadcast(& ptcb->exit_cv);
-    ptcb->refcount = 1;
+    //ptcb->refcount = 1;
   }
 
+  
   curproc_remove_thread();
   ptcb_refcount_decrement(ptcb);
   

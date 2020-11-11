@@ -336,7 +336,7 @@ typedef struct Test
 
 
 /** @brief Default time per test. */
-#define DEFAULT_TIMEOUT 10
+#define DEFAULT_TIMEOUT 100
 
 /** @brief Declare a standard test function. */
 #define BARE_TEST(tname, descr, ...) \

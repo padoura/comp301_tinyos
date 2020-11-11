@@ -1041,7 +1041,7 @@ BOOT_TEST(test_multiple_detach,
 
 
 BOOT_TEST(test_join_many_threads,
-	"Test that many threads joining the same thread work ok")
+	"Test that many threads joining the same thread work ok", .timeout = 20)
 {
 	/* A thread to be joined */
 	int joined_thread(int argl, void* args) {
@@ -1168,7 +1168,7 @@ BOOT_TEST(test_detach_after_join,
 
 
 BOOT_TEST(test_exit_many_threads,
-	"Test that if many process threads call Exit, the process will clean up correctly."
+	"Test that if many process threads call Exit, the process will clean up correctly.", .timeout=200
 	)
 {
 
