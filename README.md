@@ -54,11 +54,19 @@ for anything serious, as well as the GDB debugger.
 A regression test wrapper of `validate_api` is provided in this implementation. Simply use the following command:
 
 ```
-regression/run.sh {suite}
+regression/run.sh {suite} -c {numCores} -t {num}
 ```
 
-where `{suite}` is one of the suites provided by `validate_api`. If a difference is found between the "golden" result and
-the current one, the user is prompted to decide whether to replace the golden file with the current results.
+where `{suite}` is one of the suites provided by `validate_api`. `-c` is option used for the number of cores, 
+and `-t` for the number of terminals. 
+If a difference is found between the "golden" result and the current one, the user is prompted to decide whether to replace 
+the golden file with the current results.
 
 Note that `colordiff` is required for this wrapper. If someone does not wish to install it, it can easily be replaced 
 by `diff` without a loss in functionality.
+
+Finally, the following command allows you to to rerun all tests with golden files automatically:
+
+```
+regression/rerunAll.sh
+```

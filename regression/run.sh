@@ -1,6 +1,4 @@
 #!/bin/bash
-# make clean
-make
 
 if [[ -z $1 ]]; then
     suite=all_tests
@@ -34,12 +32,12 @@ fi
 
 echo -e "\n********************\n"
 
-grepResult=$(grep "FAILED" regression/results/golden_$fileId.txt)
+grepResult=$(grep "FAILED" regression/results/results_$fileId.txt)
 if [[ -z $grepResult ]]; then
     echo "no FAILED tests!"
 else
     echo -e "FAILED tests found:\n"
-    grep "FAILED" regression/results/golden_$fileId.txt | cut -d" " -f9
+    grep "FAILED" regression/results/results_$fileId.txt | cut -d" " -f9
 fi
 
 echo -e "********************\n"
@@ -55,14 +53,11 @@ else
     echo "Replace golden? [y/(n)]"
     read isGolden
     isGolden=${isGolden:-n}
-
-    if [[ !("$6" == "--rerun") ]]; then
-        if [ "$isGolden" == "y" ]; then
-            mv regression/results/results_$fileId.txt regression/results/golden_$fileId.txt
-            echo "Golden replaced"
-        else
-            echo "Golden not replaced"
-        fi
+    if [ "$isGolden" == "y" ]; then
+        mv regression/results/results_$fileId.txt regression/results/golden_$fileId.txt
+        echo "Golden replaced"
+    else
+        echo "Golden not replaced"
     fi
 fi
 
