@@ -1,13 +1,11 @@
 running suite: thread_tests
         test_join_illegal_tid_gives_error                    [cores= 1,term=0]: ok
         test_detach_illegal_tid_gives_error                  [cores= 1,term=0]: ok
-        validate_api.c(1000): ASSERT failed: ThreadDetach(ThreadSelf())==0 
+        test_detach_self                                     [cores= 1,term=0]: ok
+        test_detach_other                                    [cores= 1,term=0]: ok
+        validate_api.c(1032): ASSERT failed: ThreadDetach(ThreadSelf()) 
         Test crashed, signal=6 (Aborted)
-        test_detach_self                                     [cores= 1,term=0]: *** FAILED ***
-        validate_api.c(1016): ASSERT failed: ThreadDetach(t)==0 
-        Test crashed, signal=6 (Aborted)
-        test_detach_other                                    [cores= 1,term=0]: *** FAILED ***
-        test_multiple_detach                                 [cores= 1,term=0]: ok
+        test_multiple_detach                                 [cores= 1,term=0]: *** FAILED ***
         validate_api.c(1088): ASSERT failed: ThreadJoin(mttid, NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_join_main_thread                                [cores= 1,term=0]: *** FAILED ***
@@ -24,10 +22,15 @@ running suite: thread_tests
         Test crashed, signal=11 (Segmentation fault)
         test_create_join_thread                              [cores= 1,term=0]: *** FAILED ***
         validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1073): ASSERT failed: ThreadDetach(tids[i])==-1 
         validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1073): ASSERT failed: ThreadDetach(tids[i])==-1 
         validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1073): ASSERT failed: ThreadDetach(tids[i])==-1 
         validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1073): ASSERT failed: ThreadDetach(tids[i])==-1 
         validate_api.c(1071): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
+        validate_api.c(1073): ASSERT failed: ThreadDetach(tids[i])==-1 
         validate_api.c(1076): ASSERT failed: some_thread_joined 
         Test crashed, signal=11 (Segmentation fault)
         test_join_many_threads                               [cores= 1,term=0]: *** FAILED ***
@@ -40,5 +43,5 @@ running suite: thread_tests
         validate_api.c(1283): ASSERT failed: ThreadJoin(tids[i], NULL)==0 
         Test crashed, signal=6 (Aborted)
         test_cyclic_joins                                    [cores= 1,term=0]: *** FAILED ***
-        suite thread_tests completed [tests=14, failed=7]
+        suite thread_tests completed [tests=14, failed=6]
 thread_tests                                                          : *** FAILED ***
