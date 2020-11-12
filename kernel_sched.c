@@ -47,8 +47,8 @@ Mutex active_threads_spinlock = MUTEX_INIT;
 
 /* Multilevel Feedback Queue parameters */
 volatile unsigned int update_thread_priority_counter = 0;
-#define MFQ_LEVEL_NUM 3
-#define GLOB_PRIORITY_INCR_THRES 5
+#define MFQ_LEVEL_NUM 500
+#define GLOB_PRIORITY_INCR_THRES 9999
 
 /* This is specific to Intel Pentium! */
 #define SYSTEM_PAGE_SIZE (1 << 12)
@@ -299,6 +299,7 @@ static int find_first_non_empty(){
 	for(int i=first_non_empty;i>=0;i--){
 		if (is_rlist_empty(&SCHED[i])==0){
 			first_non_empty=i;
+			break;
 		}
 	}
 	return first_non_empty;
@@ -389,23 +390,23 @@ void sleep_releasing(Thread_state state, Mutex* mx, enum SCHED_CAUSE cause,
 		preempt_on;
 }
 
-void move_down_curthread(){
-	if (CURTHREAD->priority > 0){
-		rlist_remove(&CURTHREAD->sched_node);
-		CURTHREAD->priority--;
-		rlist_push_back(&SCHED[CURTHREAD->priority], &CURTHREAD->sched_node);
+static void move_down_curthread(TCB* current){
+	if (current->priority > 0){
+		rlist_remove(&current->sched_node);
+		current->priority--;
+		rlist_push_back(&SCHED[current->priority], &current->sched_node);
 	}
 }
 
-void move_up_curthread(){
-	if (CURTHREAD->priority < MFQ_LEVEL_NUM-1){
-		rlist_remove(&CURTHREAD->sched_node);
-		CURTHREAD->priority++;
-		rlist_push_back(&SCHED[CURTHREAD->priority], &CURTHREAD->sched_node);
+static void move_up_curthread(TCB* current){
+	if (current->priority < MFQ_LEVEL_NUM-1){
+		rlist_remove(&current->sched_node);
+		current->priority++;
+		rlist_push_back(&SCHED[current->priority], &current->sched_node);
 	}
 }
 
-void thread_priority_increment_all(rlnode* list){
+static void thread_priority_increment_all(rlnode* list){
 	rlnode* p = list->next;
 	while(p!=list) {
 		p->tcb->priority++;
@@ -413,33 +414,34 @@ void thread_priority_increment_all(rlnode* list){
 	}
 }
 
-void move_up_all_threads(){
-	for(int i=0;i<MFQ_LEVEL_NUM-1;i++){
+static void move_up_all_threads(){
+	for(int i=MFQ_LEVEL_NUM-2;i>=0;i--){
+		thread_priority_increment_all(&SCHED[i]);
 		rlist_append(&SCHED[i+1], &SCHED[i]);
-		thread_priority_increment_all(&SCHED[i+1]);
 	}
 }
 
-void update_thread_priority(){
+static void update_thread_priority(TCB* current){
 
 	update_thread_priority_counter++;
 
-	switch (CURTHREAD->curr_cause){
+	if (update_thread_priority_counter == GLOB_PRIORITY_INCR_THRES){
+		move_up_all_threads();
+		update_thread_priority_counter = 0;
+	}
+
+	switch (current->curr_cause){
 		case SCHED_QUANTUM:
-			move_down_curthread();
+			move_down_curthread(current);
 			break;
 		case SCHED_IO:
-			move_up_curthread();
+			move_up_curthread(current);
 			break;
 		case SCHED_MUTEX:
-			if (CURTHREAD->last_cause == SCHED_MUTEX)
-				move_down_curthread();
+			if (current->last_cause == SCHED_MUTEX)
+				move_down_curthread(current);
 			break;
 		default:
-			if (update_thread_priority_counter == GLOB_PRIORITY_INCR_THRES){
-				move_up_all_threads();
-				update_thread_priority_counter = 0;
-			}
 			break;
 	}
 
@@ -469,7 +471,7 @@ void yield(enum SCHED_CAUSE cause)
 	current->last_cause = current->curr_cause;
 	current->curr_cause = cause;
 
-	update_thread_priority();
+	update_thread_priority(current);
 
 	/* Wake up threads whose sleep timeout has expired */
 	sched_wakeup_expired_timeouts();
