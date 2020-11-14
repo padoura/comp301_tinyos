@@ -121,6 +121,7 @@ distclean: realclean
 realclean:
 	-rm $(C_PROG:.c=) $(C_OBJECTS) .depend
 	-rm $(FIFOS)
+	-rm regression/results/results_*.txt
 
 depend: $(C_SOURCES)
 	$(CC) $(CFLAGS) -MM $(C_SOURCES) > .depend
