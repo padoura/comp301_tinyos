@@ -27,11 +27,11 @@ PTCB* initialize_ptcb(Task call, int argl, void* args)
 	return ptcb;
 }
 
-void update_pcb_owner(PTCB** ptcb){
-  PCB* pcb = (*ptcb)->tcb->owner_pcb;
-  rlnode* node = rlnode_init(& (*ptcb)->ptcb_list_node, (*ptcb));
+void update_pcb_owner(PTCB* ptcb){
+  PCB* pcb = ptcb->tcb->owner_pcb;
+  rlnode* node = rlnode_init(& ptcb->ptcb_list_node, ptcb);
   rlist_push_front(& pcb->ptcb_list, node);
-	(*ptcb)->refcount++;
+	ptcb->refcount++;
 	pcb->thread_count++;
 }
 
@@ -70,7 +70,7 @@ Tid_t sys_CreateThread(Task task, int argl, void* args)
   if(task != NULL) {
     ptcb->tcb = spawn_thread(CURPROC, start_thread);
     ptcb->tcb->ptcb = ptcb;
-    update_pcb_owner(&ptcb);
+    update_pcb_owner(ptcb);
     wakeup(ptcb->tcb);
 
   }

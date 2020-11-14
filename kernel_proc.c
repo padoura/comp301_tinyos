@@ -187,7 +187,7 @@ Pid_t sys_Exec(Task call, int argl, void* args)
     newproc->main_thread = spawn_thread(newproc, start_main_thread);
     newproc->main_thread->ptcb = ptcb;
     ptcb->tcb = newproc->main_thread;
-    update_pcb_owner(&ptcb);
+    update_pcb_owner(ptcb);
     wakeup(newproc->main_thread);
   }
 
