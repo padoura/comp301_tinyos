@@ -107,8 +107,13 @@ void ptcb_refcount_decrement(PTCB* ptcb){
 int sys_ThreadJoin(Tid_t tid, int* exitval)
 {
   rlnode *node = rlist_find((&CURPROC->ptcb_list), (PTCB*)tid, NULL);
-  if(node == NULL || node->ptcb->exited == 1 || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
+  if(node == NULL || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
       return -1;
+  if(node->ptcb->exited == 1){
+    if(exitval != NULL)
+      *exitval = node->ptcb->exitval;
+    return 0;
+  }
   node->ptcb->refcount++;
   while(node->ptcb->exited != 1){
     kernel_wait(&(node->ptcb->exit_cv), SCHED_USER);

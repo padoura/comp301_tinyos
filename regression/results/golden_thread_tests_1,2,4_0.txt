@@ -23,9 +23,15 @@ running suite: thread_tests
         test_detach_after_join                               [cores= 1,term=0]: ok
         test_detach_after_join                               [cores= 2,term=0]: ok
         test_detach_after_join                               [cores= 4,term=0]: ok
-        test_create_join_thread                              [cores= 1,term=0]: ok
-        test_create_join_thread                              [cores= 2,term=0]: ok
-        test_create_join_thread                              [cores= 4,term=0]: ok
+        validate_api.c(1021): ASSERT failed: ThreadJoin(t, NULL)==-1 
+        Test crashed, signal=6 (Aborted)
+        test_create_join_thread                              [cores= 1,term=0]: *** FAILED ***
+        validate_api.c(1021): ASSERT failed: ThreadJoin(t, NULL)==-1 
+        Test crashed, signal=6 (Aborted)
+        test_create_join_thread                              [cores= 2,term=0]: *** FAILED ***
+        validate_api.c(1021): ASSERT failed: ThreadJoin(t, NULL)==-1 
+        Test crashed, signal=6 (Aborted)
+        test_create_join_thread                              [cores= 4,term=0]: *** FAILED ***
         test_join_many_threads                               [cores= 1,term=0]: ok
         test_join_many_threads                               [cores= 2,term=0]: ok
         test_join_many_threads                               [cores= 4,term=0]: ok
@@ -41,5 +47,5 @@ running suite: thread_tests
         test_cyclic_joins                                    [cores= 1,term=0]: ok
         test_cyclic_joins                                    [cores= 2,term=0]: ok
         test_cyclic_joins                                    [cores= 4,term=0]: ok
-        suite thread_tests completed [tests=14, failed=0]
-thread_tests                                                          : ok
+        suite thread_tests completed [tests=14, failed=1]
+thread_tests                                                          : *** FAILED ***
