@@ -27,11 +27,11 @@ PTCB* initialize_ptcb(Task call, int argl, void* args)
 	return ptcb;
 }
 
-void update_pcb_owner(PTCB** ptcb){
-  PCB* pcb = (*ptcb)->tcb->owner_pcb;
-  rlnode* node = rlnode_init(& (*ptcb)->ptcb_list_node, (*ptcb));
+void update_pcb_owner(PTCB* ptcb){
+  PCB* pcb = ptcb->tcb->owner_pcb;
+  rlnode* node = rlnode_init(& ptcb->ptcb_list_node, ptcb);
   rlist_push_front(& pcb->ptcb_list, node);
-	(*ptcb)->refcount++;
+	ptcb->refcount++;
 	pcb->thread_count++;
 }
 
@@ -70,7 +70,7 @@ Tid_t sys_CreateThread(Task task, int argl, void* args)
   if(task != NULL) {
     ptcb->tcb = spawn_thread(CURPROC, start_thread);
     ptcb->tcb->ptcb = ptcb;
-    update_pcb_owner(&ptcb);
+    update_pcb_owner(ptcb);
     wakeup(ptcb->tcb);
 
   }
@@ -90,8 +90,8 @@ Tid_t sys_ThreadSelf()
 
 void ptcb_refcount_decrement(PTCB* ptcb){
   ptcb->refcount--;
-
   if (ptcb->refcount == 0){ // PTCB no longer needed
+    rlist_remove(&ptcb->ptcb_list_node);
     free(ptcb);
   }
 }
@@ -110,12 +110,12 @@ int sys_ThreadJoin(Tid_t tid, int* exitval)
   if(node == NULL || node->ptcb->exited == 1 || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
       return -1;
   node->ptcb->refcount++;
-  while(node->ptcb->exited != 1 && node->ptcb->detached != 1){
+  while(node->ptcb->exited != 1){
     kernel_wait(&(node->ptcb->exit_cv), SCHED_USER);
     if(node->ptcb->detached == 1)
       return -1;
   }
-  if(node->ptcb->exited == 1 && exitval != NULL)
+  if(exitval != NULL)
     *exitval = node->ptcb->exitval;
   ptcb_refcount_decrement(node->ptcb);
   return 0;
@@ -158,8 +158,7 @@ void sys_ThreadExit(int exitval)
   }
 
   
-  curproc_remove_thread();
-  ptcb_refcount_decrement(ptcb);
+  curproc_decrement_thread_counter();
   
   /* Bye-bye cruel world */
   kernel_sleep(EXITED, SCHED_USER); //  set current thread's status to EXITED and let it be deleted in the following gain()

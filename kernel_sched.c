@@ -45,6 +45,11 @@
 volatile unsigned int active_threads = 0;
 Mutex active_threads_spinlock = MUTEX_INIT;
 
+/* Multilevel Feedback Queue parameters */
+volatile unsigned int update_thread_priority_counter = 0;
+#define MFQ_LEVEL_NUM 500
+#define GLOB_PRIORITY_INCR_THRES 9999
+
 /* This is specific to Intel Pentium! */
 #define SYSTEM_PAGE_SIZE (1 << 12)
 
@@ -53,6 +58,8 @@ Mutex active_threads_spinlock = MUTEX_INIT;
 	(((sizeof(TCB) + SYSTEM_PAGE_SIZE - 1) / SYSTEM_PAGE_SIZE) * SYSTEM_PAGE_SIZE)
 
 #define THREAD_SIZE (THREAD_TCB_SIZE + THREAD_STACK_SIZE)
+
+
 
 //#define MMAPPED_THREAD_MEM
 #ifdef MMAPPED_THREAD_MEM
@@ -129,6 +136,8 @@ TCB* spawn_thread(PCB* pcb, void (*func)())
 	tcb->last_cause = SCHED_IDLE;
 	tcb->curr_cause = SCHED_IDLE;
 
+	tcb->priority=MFQ_LEVEL_NUM-1;
+
 	/* Compute the stack segment address and size */
 	void* sp = ((void*)tcb) + THREAD_TCB_SIZE;
 
@@ -186,7 +195,7 @@ CCB cctx[MAX_CORES];
   Both of these structures are protected by @c sched_spinlock.
 */
 
-rlnode SCHED; /* The scheduler queue */
+rlnode SCHED[MFQ_LEVEL_NUM]; /* The multilevel scheduler queue */
 rlnode TIMEOUT_LIST; /* The list of threads with a timeout */
 Mutex sched_spinlock = MUTEX_INIT; /* spinlock for scheduler queue */
 
@@ -229,7 +238,7 @@ static void sched_register_timeout(TCB* tcb, TimerDuration timeout)
 static void sched_queue_add(TCB* tcb)
 {
 	/* Insert at the end of the scheduling list */
-	rlist_push_back(&SCHED, &tcb->sched_node);
+	rlist_push_back(&SCHED[tcb->priority], &tcb->sched_node);
 
 	/* Restart possibly halted cores */
 	cpu_core_restart_one();
@@ -280,15 +289,34 @@ static void sched_wakeup_expired_timeouts()
 }
 
 /*
-  Remove the head of the scheduler list, if any, and
+  Find the first non-empty scheduler list, with backwards iteration.
+
+  *** MUST BE CALLED WITH sched_spinlock HELD ***
+*/
+
+static int find_first_non_empty(){
+	int first_non_empty = MFQ_LEVEL_NUM-1;
+	for(int i=first_non_empty;i>=0;i--){
+		if (is_rlist_empty(&SCHED[i])==0){
+			first_non_empty=i;
+			break;
+		}
+	}
+	return first_non_empty;
+}
+
+/*
+  Remove the head of the first (backward search) 
+  non-empty scheduler list, if any, and
   return it. Return NULL if the list is empty.
 
   *** MUST BE CALLED WITH sched_spinlock HELD ***
 */
 static TCB* sched_queue_select(TCB* current)
 {
-	/* Get the head of the SCHED list */
-	rlnode* sel = rlist_pop_front(&SCHED);
+	/* Get the head of the first non-empty SCHED list */
+	int first_non_empty = find_first_non_empty();
+	rlnode* sel = rlist_pop_front(&SCHED[first_non_empty]);
 
 	TCB* next_thread = sel->tcb; /* When the list is empty, this is NULL */
 
@@ -362,6 +390,60 @@ void sleep_releasing(Thread_state state, Mutex* mx, enum SCHED_CAUSE cause,
 		preempt_on;
 }
 
+static void move_down_curthread(TCB* current){
+	if (current->priority > 0){
+		current->priority--;
+	}
+}
+
+static void move_up_curthread(TCB* current){
+	if (current->priority < MFQ_LEVEL_NUM-1){
+		current->priority++;
+	}
+}
+
+static void thread_priority_increment_all(rlnode* list){
+	rlnode* p = list->next;
+	while(p!=list) {
+		p->tcb->priority++;
+		p = p->next;
+	}
+}
+
+static void move_up_all_threads(){
+	for(int i=MFQ_LEVEL_NUM-2;i>=0;i--){
+		thread_priority_increment_all(&SCHED[i]);
+		rlist_append(&SCHED[i+1], &SCHED[i]);
+	}
+}
+
+static void update_thread_priority(TCB* current){
+
+	update_thread_priority_counter++;
+
+	if (update_thread_priority_counter == GLOB_PRIORITY_INCR_THRES){
+		move_up_all_threads();
+		update_thread_priority_counter = 0;
+	}
+
+	switch (current->curr_cause){
+		case SCHED_QUANTUM:
+			move_down_curthread(current);
+			break;
+		case SCHED_IO:
+			move_up_curthread(current);
+			break;
+		case SCHED_MUTEX:
+			if (current->last_cause == SCHED_MUTEX)
+				move_down_curthread(current);
+			break;
+		default:
+			break;
+	}
+
+}
+
+
 /* This function is the entry point to the scheduler's context switching */
 
 void yield(enum SCHED_CAUSE cause)
@@ -384,6 +466,8 @@ void yield(enum SCHED_CAUSE cause)
 	current->rts = remaining;
 	current->last_cause = current->curr_cause;
 	current->curr_cause = cause;
+
+	update_thread_priority(current);
 
 	/* Wake up threads whose sleep timeout has expired */
 	sched_wakeup_expired_timeouts();
@@ -482,7 +566,9 @@ static void idle_thread()
  */
 void initialize_scheduler()
 {
-	rlnode_init(&SCHED, NULL);
+	for(int i=0;i<MFQ_LEVEL_NUM;i++){
+		rlnode_init(&SCHED[i], NULL);
+	}
 	rlnode_init(&TIMEOUT_LIST, NULL);
 }
 
@@ -501,6 +587,8 @@ void run_scheduler()
 	curcore->idle_thread.phase = CTX_DIRTY;
 	curcore->idle_thread.wakeup_time = NO_TIMEOUT;
 	rlnode_init(&curcore->idle_thread.sched_node, &curcore->idle_thread);
+
+	curcore->idle_thread.priority = MFQ_LEVEL_NUM-1;
 
 	curcore->idle_thread.its = QUANTUM;
 	curcore->idle_thread.rts = QUANTUM;

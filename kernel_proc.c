@@ -187,7 +187,7 @@ Pid_t sys_Exec(Task call, int argl, void* args)
     newproc->main_thread = spawn_thread(newproc, start_main_thread);
     newproc->main_thread->ptcb = ptcb;
     ptcb->tcb = newproc->main_thread;
-    update_pcb_owner(&ptcb);
+    update_pcb_owner(ptcb);
     wakeup(newproc->main_thread);
   }
 
@@ -354,10 +354,22 @@ void process_cleanup()
   // curproc->exitval = exitval;
 }
 
+void curproc_ptcb_list_refcount_decrement(){
+  rlnode* list = &CURPROC->ptcb_list;
+	rlnode* next = list->next;
+  rlnode* prev = next;
+	while(next!=list) {
+		next = next->next;
+		ptcb_refcount_decrement(prev->ptcb);
+    prev = next;
+	}
+}
 
-void curproc_remove_thread(){
+
+void curproc_decrement_thread_counter(){
   CURPROC->thread_count--;
   if (CURPROC->thread_count == 0){ // all threads ended, clean process
+    curproc_ptcb_list_refcount_decrement();
     process_cleanup();
   }
 }
