@@ -392,17 +392,13 @@ void sleep_releasing(Thread_state state, Mutex* mx, enum SCHED_CAUSE cause,
 
 static void move_down_curthread(TCB* current){
 	if (current->priority > 0){
-		rlist_remove(&current->sched_node);
 		current->priority--;
-		rlist_push_back(&SCHED[current->priority], &current->sched_node);
 	}
 }
 
 static void move_up_curthread(TCB* current){
 	if (current->priority < MFQ_LEVEL_NUM-1){
-		rlist_remove(&current->sched_node);
 		current->priority++;
-		rlist_push_back(&SCHED[current->priority], &current->sched_node);
 	}
 }
 
