@@ -110,12 +110,12 @@ int sys_ThreadJoin(Tid_t tid, int* exitval)
   if(node == NULL || node->ptcb->exited == 1 || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
       return -1;
   node->ptcb->refcount++;
-  while(node->ptcb->exited != 1 && node->ptcb->detached != 1){
+  while(node->ptcb->exited != 1){
     kernel_wait(&(node->ptcb->exit_cv), SCHED_USER);
     if(node->ptcb->detached == 1)
       return -1;
   }
-  if(node->ptcb->exited == 1 && exitval != NULL)
+  if(exitval != NULL)
     *exitval = node->ptcb->exitval;
   ptcb_refcount_decrement(node->ptcb);
   return 0;
