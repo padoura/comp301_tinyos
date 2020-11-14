@@ -3,6 +3,7 @@
 #include "kernel_cc.h"
 #include "kernel_proc.h"
 #include "kernel_streams.h"
+#include "kernel_threads.h"
 
 
 /* 
@@ -44,6 +45,9 @@ static inline void initialize_PCB(PCB* pcb)
   rlnode_init(& pcb->children_node, pcb);
   rlnode_init(& pcb->exited_node, pcb);
   pcb->child_exit = COND_INIT;
+  
+  rlnode_init(& pcb->ptcb_list, NULL);
+  pcb->thread_count = 0;
 }
 
 
@@ -178,7 +182,12 @@ Pid_t sys_Exec(Task call, int argl, void* args)
     the initialization of the PCB.
    */
   if(call != NULL) {
+    PTCB* ptcb = initialize_ptcb(call, argl, args);
+
     newproc->main_thread = spawn_thread(newproc, start_main_thread);
+    newproc->main_thread->ptcb = ptcb;
+    ptcb->tcb = newproc->main_thread;
+    update_pcb_owner(&ptcb);
     wakeup(newproc->main_thread);
   }
 
@@ -289,6 +298,16 @@ void sys_Exit(int exitval)
     while(sys_WaitChild(NOPROC,NULL)!=NOPROC);
   }
 
+  CURPROC->exitval = exitval;
+
+  sys_ThreadExit(exitval);
+}
+
+/** 
+ * This function mostly consists of the original Exec syscall 
+ * */
+void process_cleanup()
+{
   PCB *curproc = CURPROC;  /* cache for efficiency */
 
   /* Do all the other cleanup we want here, close files etc. */
@@ -332,10 +351,15 @@ void sys_Exit(int exitval)
 
   /* Now, mark the process as exited. */
   curproc->pstate = ZOMBIE; // ΖΟΜΒΙΕs are later cleaned by the kernel
-  curproc->exitval = exitval;
+  // curproc->exitval = exitval;
+}
 
-  /* Bye-bye cruel world */
-  kernel_sleep(EXITED, SCHED_USER); //  set current thread's status to EXITED and let it be deleted in the following gain()
+
+void curproc_remove_thread(){
+  CURPROC->thread_count--;
+  if (CURPROC->thread_count == 0){ // all threads ended, clean process
+    process_cleanup();
+  }
 }
 
 

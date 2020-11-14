@@ -129,4 +129,9 @@ Pid_t get_pid(PCB* pcb);
 
 /** @} */
 
+/**
+  @brief TODO (self-explanatory name)
+*/
+void curproc_remove_thread();
+
 #endif
