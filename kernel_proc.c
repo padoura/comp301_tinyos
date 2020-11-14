@@ -354,10 +354,22 @@ void process_cleanup()
   // curproc->exitval = exitval;
 }
 
+void curproc_ptcb_list_refcount_decrement(){
+  rlnode* list = &CURPROC->ptcb_list;
+	rlnode* next = list->next;
+  rlnode* prev = next;
+	while(next!=list) {
+		next = next->next;
+		ptcb_refcount_decrement(prev->ptcb);
+    prev = next;
+	}
+}
 
-void curproc_remove_thread(){
+
+void curproc_decrement_thread_counter(){
   CURPROC->thread_count--;
   if (CURPROC->thread_count == 0){ // all threads ended, clean process
+    curproc_ptcb_list_refcount_decrement();
     process_cleanup();
   }
 }

@@ -90,8 +90,8 @@ Tid_t sys_ThreadSelf()
 
 void ptcb_refcount_decrement(PTCB* ptcb){
   ptcb->refcount--;
-
   if (ptcb->refcount == 0){ // PTCB no longer needed
+    rlist_remove(&ptcb->ptcb_list_node);
     free(ptcb);
   }
 }
@@ -158,8 +158,7 @@ void sys_ThreadExit(int exitval)
   }
 
   
-  curproc_remove_thread();
-  ptcb_refcount_decrement(ptcb);
+  curproc_decrement_thread_counter();
   
   /* Bye-bye cruel world */
   kernel_sleep(EXITED, SCHED_USER); //  set current thread's status to EXITED and let it be deleted in the following gain()

@@ -135,6 +135,6 @@ Pid_t get_pid(PCB* pcb);
 /**
   @brief TODO (self-explanatory name)
 */
-void curproc_remove_thread();
+void curproc_decrement_thread_counter();
 
 #endif
