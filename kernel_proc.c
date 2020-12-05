@@ -381,6 +381,30 @@ void curproc_decrement_thread_counter(){
 
 *****************/
 
+Fid_t invalid_open(uint minor){
+  return -1;
+}
+
+int invalid_write(void* this, const char* buf, unsigned int size){
+  return -1;
+}
+
+int procinfo_read(void* this, char *buf, unsigned int size){
+  return -1;
+}
+
+int procinfo_close(void* this){
+  return -1;
+}
+
+
+file_ops procinfo_ops = {
+  .Open = invalid_open,
+  .Read = procinfo_read,
+  .Write = invalid_write,
+  .Close = procinfo_close
+};
+
 void initialize_procinfoCB(FCB* fcb){
 
   procinfoCB* infoCB = (procinfoCB*) xmalloc(sizeof(procinfoCB));
