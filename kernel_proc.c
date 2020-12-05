@@ -394,7 +394,9 @@ int procinfo_read(void* this, char *buf, unsigned int size){
 }
 
 int procinfo_close(void* this){
-  return -1;
+  free(((procinfoCB*) this)->info);
+  free(this);
+  return 0;
 }
 
 
