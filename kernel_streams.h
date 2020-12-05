@@ -53,8 +53,8 @@ typedef struct pipe_control_block{
 	CondVar has_space; 				/*For blocking writer if no space is available*/
 	CondVar has_data; 				/*For blocking reader until data are available*/
 	int w_position, r_position; 	/*write-read position in buffer*/
-	int read_end;					/*Becomes 1 in pipe_reader_close()*/
-	int write_end;					/*Becomes 1 in pipe_writer_close()*/
+	int reader_closed;					/*Becomes 1 in pipe_reader_close()*/
+	int writer_closed;					/*Becomes 1 in pipe_writer_close()*/
 	char BUFFER[PIPE_BUFFER_SIZE]; 	/*Bounded (cyclic) byte buffer*/
 }pipe_cb;
 
