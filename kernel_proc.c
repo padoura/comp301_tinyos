@@ -375,9 +375,33 @@ void curproc_decrement_thread_counter(){
 }
 
 
+/****************
 
-Fid_t sys_OpenInfo()
-{
-	return NOFILE;
+  SystemInfo
+
+*****************/
+
+void initialize_procinfoCB(FCB* fcb){
+
+  procinfoCB* infoCB = (procinfoCB*) xmalloc(sizeof(procinfoCB));
+  infoCB->info = (procinfo*) xmalloc(sizeof(procinfo));
+  infoCB->PCB_cursor = 0;
+
+  fcb->streamobj = infoCB;
+  fcb->streamfunc = &procinfo_ops;
+
+}
+
+
+Fid_t sys_OpenInfo(){
+  Fid_t fid;
+  FCB* fcb;
+
+  if(! FCB_reserve(1, &fid, &fcb))
+      return NOFILE;
+
+  initialize_procinfoCB(fcb);
+
+	return fid;
 }
 
