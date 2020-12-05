@@ -94,6 +94,12 @@ typedef struct process_thread_control_block {
 
 } PTCB;
 
+typedef struct procinfo_control_block {
+
+  procinfo* info;
+  int PCB_cursor;
+
+} procinfoCB;
 
 /**
   @brief Initialize the process table.

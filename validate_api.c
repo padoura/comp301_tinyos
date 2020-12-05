@@ -2477,6 +2477,36 @@ int task(int argl, void* args) {
 	return 2;
 }
 
+BOOT_TEST(test_system_info,
+	"Basic test for system info"
+	)
+{
+	Fid_t finfo = OpenInfo();
+	if(finfo!=NOFILE) {
+		/* Print per-process info */
+		procinfo info;
+		/* Read in next piece of info */		
+		while(Read(finfo, (char*) &info, sizeof(info)) > 0) {
+			Program prog=NULL;
+			const char* argv[10];
+			ParseProcInfo(&info, &prog, 10, argv);
+			if(info.pid==1){ // init
+				ASSERT(info.pid==1);
+				ASSERT(info.ppid==-1);
+				ASSERT(info.alive==1);
+				ASSERT(info.thread_count==1);
+			} else if(info.pid==0){
+				ASSERT(info.pid==0);
+				ASSERT(info.ppid==-1);
+				ASSERT(info.alive==1);
+				ASSERT(info.thread_count==0);					
+			}
+		}
+		ASSERT(info.pid==1);
+	}
+	return 0;
+};
+
 BOOT_TEST(test_create_thread,
 	"Test that a process thread can be created. Also, that "
 	"the argument of the thread is passed correctly."
@@ -2497,6 +2527,7 @@ TEST_SUITE(user_tests,
 {
 	&dummy_user_test,
 	&test_create_thread,
+	&test_system_info,
 	NULL
 };
 
