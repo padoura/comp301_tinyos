@@ -12,3 +12,4 @@ doc/
 kbd*
 con*
 *results_*.txt
+/.vscode/settings.json
