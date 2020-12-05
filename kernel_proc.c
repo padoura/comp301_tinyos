@@ -381,21 +381,49 @@ void curproc_decrement_thread_counter(){
 
 *****************/
 
-Fid_t invalid_open(uint minor){
-  return -1;
+void* invalid_open(uint minor){
+  return NULL;
 }
 
 int invalid_write(void* this, const char* buf, unsigned int size){
   return -1;
 }
 
-int procinfo_read(void* this, char *buf, unsigned int size){
-  return -1;
+
+
+void update_procinfo(procinfoCB* infoCB, PCB *pcb){
+  infoCB->info->alive = pcb->pstate == ALIVE;
+  infoCB->info->argl = pcb->argl;
+  infoCB->info->main_task = pcb->main_task;
+  infoCB->info->pid = get_pid(pcb);
+  infoCB->info->ppid = get_pid(pcb->parent);
+  infoCB->info->thread_count = pcb->thread_count;
+  if (infoCB->info->argl < PROCINFO_MAX_ARGS_SIZE)
+    memcpy(infoCB->info->args, pcb->args, infoCB->info->argl);
+  else
+    memcpy(infoCB->info->args, pcb->args, PROCINFO_MAX_ARGS_SIZE);
 }
 
-int procinfo_close(void* this){
-  free(((procinfoCB*) this)->info);
-  free(this);
+int procinfo_read(void* infoCB, char *buf, unsigned int size){
+  int i = ((procinfoCB*) infoCB)->PCB_cursor;
+  while (i < MAX_PROC){
+    PCB *pcb = &PT[i];
+    if (pcb->pstate == ALIVE || pcb->pstate == ZOMBIE){
+      update_procinfo((procinfoCB*) infoCB, pcb);
+
+      memcpy(buf, (char*) ((procinfoCB*) infoCB)->info, size);
+      
+      ((procinfoCB*) infoCB)->PCB_cursor++;
+      return size;
+    }
+    i = ++((procinfoCB*) infoCB)->PCB_cursor;
+  }
+  return 0;
+}
+
+int procinfo_close(void* infoCB){
+  free(((procinfoCB*) infoCB)->info);
+  free(infoCB);
   return 0;
 }
 
