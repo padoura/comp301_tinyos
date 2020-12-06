@@ -7,19 +7,20 @@ int pipe_read(void *this, char *buf, unsigned int length){
 	pipe_cb *pipeCb = (pipe_cb*) this;
 
 	if(pipeCb->reader_closed == 1) return -1;					/*If write end is closed pipe_read can still operate*/
-	if(pipeCb->r_position == pipeCb->w_position) return 0;	/*If BUFFER is empty return 0*/
+	if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return 0;	/*If BUFFER is empty return 0*/
 
 	int position;
 	for(position = 0; position < length; position++)
 	{
-		pipeCb->r_position = (pipeCb->r_position+1) % PIPE_BUFFER_SIZE;
-		while(pipeCb->r_position == pipeCb->w_position)
+		
+		while(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed!=1)
 		{
 			kernel_broadcast(&pipeCb->has_space);
 			kernel_wait(&pipeCb->has_data, SCHED_PIPE);
 		}
 		if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return 0;
 		if(pipeCb->reader_closed == 1) return -1;
+		pipeCb->r_position = (pipeCb->r_position+1) % PIPE_BUFFER_SIZE;
 		buf[position] = pipeCb->BUFFER[pipeCb->r_position];
 	}
 
@@ -36,16 +37,16 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 	
 	for(position = 0; position < length; position++)
 	{
-		pipeCb->w_position = (pipeCb->w_position+1) % PIPE_BUFFER_SIZE;
+		
 		/*In order to achieve cyclic BUFFER we need to start writting again in 
 	 	  position 0 once the PIPE_BUFFER_SIZE overflows*/
-		while(pipeCb->w_position == pipeCb->r_position)
+		while((pipeCb->w_position+1) % PIPE_BUFFER_SIZE == pipeCb->r_position && pipeCb->reader_closed!=1)
 		{
 			kernel_broadcast(&pipeCb->has_data);
 			kernel_wait(&pipeCb->has_space, SCHED_PIPE);
 		}
 		if(pipeCb->reader_closed == 1 || pipeCb->writer_closed == 1) return -1;
-		
+		pipeCb->w_position = (pipeCb->w_position+1) % PIPE_BUFFER_SIZE;
 		pipeCb->BUFFER[pipeCb->w_position] = buf[position];
 	}
 
