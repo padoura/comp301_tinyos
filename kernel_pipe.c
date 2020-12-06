@@ -3,23 +3,34 @@
 #include "kernel_streams.h"
 #include "kernel_cc.h"
 
+int get_expected_read_length(pipe_cb *pipeCb, unsigned int length){
+	int written_length = pipeCb->w_position >= pipeCb->r_position ? 
+		pipeCb->w_position - pipeCb->r_position : 
+		PIPE_BUFFER_SIZE - pipeCb->r_position + pipeCb->w_position;
+	return length < written_length ? length : written_length;
+
+}
+
 int pipe_read(void *this, char *buf, unsigned int length){
 	pipe_cb *pipeCb = (pipe_cb*) this;
 
 	if(pipeCb->reader_closed == 1) return -1;					/*If write end is closed pipe_read can still operate*/
 	if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return 0;	/*If BUFFER is empty return 0*/
 
+	int expected_length = length;
+
 	int position;
-	for(position = 0; position < length; position++)
+	for(position = 0; position < expected_length; position++)
 	{
 		
 		while(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed!=1)
 		{
 			kernel_broadcast(&pipeCb->has_space);
 			kernel_wait(&pipeCb->has_data, SCHED_PIPE);
+			// POSIX behaviour: ensure that read will return when something has been read without blocking
+			expected_length = get_expected_read_length(pipeCb, length);
 		}
-		if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return position;
-		if(pipeCb->reader_closed == 1) return -1;
+		if(pipeCb->r_position == pipeCb->w_position) return position;
 		pipeCb->r_position = (pipeCb->r_position+1) % PIPE_BUFFER_SIZE;
 		buf[position] = pipeCb->BUFFER[pipeCb->r_position];
 	}
@@ -38,7 +49,7 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 	for(position = 0; position < length; position++)
 	{
 		
-		/*In order to achieve cyclic BUFFER we need to start writting again in 
+		/*In order to achieve cyclic BUFFER we need to start writing again in 
 	 	  position 0 once the PIPE_BUFFER_SIZE overflows*/
 		while((pipeCb->w_position+1) % PIPE_BUFFER_SIZE == pipeCb->r_position && pipeCb->reader_closed!=1)
 		{
@@ -50,7 +61,7 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 		pipeCb->BUFFER[pipeCb->w_position] = buf[position];
 	}
 
-	kernel_broadcast(&pipeCb->has_data);	/*Finished writing corectly, broadcast to start reading*/
+	kernel_broadcast(&pipeCb->has_data);	/*Finished writing correctly, broadcast to start reading*/
 	return position;
 }
 

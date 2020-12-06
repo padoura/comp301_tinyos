@@ -46,7 +46,7 @@ typedef struct file_control_block
   rlnode freelist_node;		/**< @brief Intrusive list node */
 } FCB;
 
-#define PIPE_BUFFER_SIZE (10000)
+#define PIPE_BUFFER_SIZE (10*1024)
 
 typedef struct pipe_control_block{
 	FCB *reader, *writer;
