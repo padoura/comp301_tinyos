@@ -1,0 +1,27 @@
+running suite: pipe_tests
+        test_pipe_open                                       [cores= 1,term=1]: ok
+        test_pipe_open                                       [cores= 1,term=2]: ok
+        test_pipe_open                                       [cores= 2,term=1]: ok
+        test_pipe_open                                       [cores= 2,term=2]: ok
+        test_pipe_fails_on_exhausted_fid                     [cores= 1,term=1]: ok
+        test_pipe_fails_on_exhausted_fid                     [cores= 1,term=2]: ok
+        test_pipe_fails_on_exhausted_fid                     [cores= 2,term=1]: ok
+        test_pipe_fails_on_exhausted_fid                     [cores= 2,term=2]: ok
+        test_pipe_close_reader                               [cores= 1,term=1]: ok
+        test_pipe_close_reader                               [cores= 1,term=2]: ok
+        test_pipe_close_reader                               [cores= 2,term=1]: ok
+        test_pipe_close_reader                               [cores= 2,term=2]: ok
+        test_pipe_close_writer                               [cores= 1,term=1]: ok
+        test_pipe_close_writer                               [cores= 1,term=2]: ok
+        test_pipe_close_writer                               [cores= 2,term=1]: ok
+        test_pipe_close_writer                               [cores= 2,term=2]: ok
+        test_pipe_single_producer                            [cores= 1,term=1]: ok
+        test_pipe_single_producer                            [cores= 1,term=2]: ok
+        test_pipe_single_producer                            [cores= 2,term=1]: ok
+        test_pipe_single_producer                            [cores= 2,term=2]: ok
+        test_pipe_multi_producer                             [cores= 1,term=1]: ok
+        test_pipe_multi_producer                             [cores= 1,term=2]: ok
+        test_pipe_multi_producer                             [cores= 2,term=1]: ok
+        test_pipe_multi_producer                             [cores= 2,term=2]: ok
+        suite pipe_tests completed [tests=6, failed=0]
+pipe_tests                                                            : ok
