@@ -1,0 +1,13 @@
+running suite: user_tests
+        dummy_user_test                                                       : ok
+        test_create_thread                                   [cores= 1,term=0]: ok
+        test_create_thread                                   [cores= 2,term=0]: ok
+        test_create_thread                                   [cores= 4,term=0]: ok
+        test_system_info                                     [cores= 1,term=0]: ok
+        test_system_info                                     [cores= 2,term=0]: ok
+        test_system_info                                     [cores= 4,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 1,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 2,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 4,term=0]: ok
+        suite user_tests completed [tests=4, failed=0]
+user_tests                                                            : ok

@@ -2520,6 +2520,92 @@ BOOT_TEST(test_create_thread,
 
 
 
+BOOT_TEST(test_pipe_reader_close_before_write,
+	"Test that whatever a reader returns after closing is "
+	"the same as in posix"
+	)
+{
+
+	// SIMULATING THE OUTPUT OF THE PROGRAM BELOW
+
+	// #include <stdio.h>
+	// #include <stdio.h> 
+	// #include <stdlib.h> 
+	// #include <unistd.h> 
+	// #include <sys/types.h> 
+	// #include <string.h> 
+	// #include <sys/wait.h> 
+	// #include <stdio.h> 
+	// #include <stdlib.h> 
+	// #include <unistd.h> 
+	// #include <pthread.h> 
+
+	// static int fid[2];
+
+	// void *myThreadFun(void *vargp) 
+	// { 
+	//     sleep(3);
+	//     close(fid[0]);
+	//     int i = write(fid[1], "test", 5);
+		
+	//     fprintf(stderr, "Printing GeeksQuiz from Thread \n");
+	//     fprintf(stderr, "write returned: %d\n", i); 
+	//     return NULL; 
+	// } 
+	
+	// int main() 
+	// {
+	//     if (pipe(fid) == -1){
+    //         fprintf(stderr, "Unexpected error"); 
+    //         exit(1);
+    //     }
+	//     pthread_t thread_id; 
+	//     pthread_create(&thread_id, NULL, myThreadFun, NULL); 
+	//     char buff[10];
+	//     int i = read(fid[0], buff, 10);
+	//     pthread_join(thread_id, NULL);
+	//     close(fid[1]);
+		
+	//     fprintf(stderr, "After Thread: %s\n", buff); 
+	//     fprintf(stderr, "read returned: %d\n", i);
+	//     i = write(fid[1], buff, 5);
+	//     fprintf(stderr, "write returned: %d\n", i);
+	//     i = read(fid[0], buff, 10);
+	//     fprintf(stderr, "read returned: %d\n", i);
+
+	//     exit(0);
+	// }
+
+
+
+	pipe_t fid[2];
+
+	int myThreadFun(int argl, void *vargp) { 
+		sleep_thread(3);
+		Close(fid->read);
+		int i = Write(fid->write, "test", 5); 
+		ASSERT(i == 5); 
+		return 0; 
+	};
+
+    Pipe(fid);
+	Tid_t t = CreateThread(myThreadFun, 0, NULL);
+	char buff[10];
+    int res = Read(fid->read, buff, 10);
+	ThreadJoin(t, NULL);
+	Close(fid->write);
+
+	ASSERT(res == 5);
+	ASSERT(strcmp(buff, "test") == 0);
+	res = Write(fid->write, buff, 5);
+	ASSERT(res == -1);
+	res = Read(fid->read, buff, 10);
+	ASSERT(res == -1);
+	return 0;
+};
+
+
+
 
 TEST_SUITE(user_tests, 
 	"These are tests defined by the user."
@@ -2528,6 +2614,7 @@ TEST_SUITE(user_tests,
 	&dummy_user_test,
 	&test_create_thread,
 	&test_system_info,
+	&test_pipe_reader_close_before_write,
 	NULL
 };
 
