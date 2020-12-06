@@ -18,7 +18,7 @@ int pipe_read(void *this, char *buf, unsigned int length){
 			kernel_broadcast(&pipeCb->has_space);
 			kernel_wait(&pipeCb->has_data, SCHED_PIPE);
 		}
-		if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return 0;
+		if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return position;
 		if(pipeCb->reader_closed == 1) return -1;
 		pipeCb->r_position = (pipeCb->r_position+1) % PIPE_BUFFER_SIZE;
 		buf[position] = pipeCb->BUFFER[pipeCb->r_position];
