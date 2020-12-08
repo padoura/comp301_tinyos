@@ -14,8 +14,8 @@ int get_expected_read_length(pipe_cb *pipeCb, unsigned int length){
 int pipe_read(void *this, char *buf, unsigned int length){
 	pipe_cb *pipeCb = (pipe_cb*) this;
 
-	if(pipeCb->reader_closed == 1) return -1;					/*If write end is closed pipe_read can still operate*/
-	if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed == 1) return 0;	/*If BUFFER is empty return 0*/
+	if(pipeCb->reader == NULL) return -1;					/*If write end is closed pipe_read can still operate*/
+	if(pipeCb->r_position == pipeCb->w_position && pipeCb->writer == NULL) return 0;	/*If BUFFER is empty return 0*/
 
 	int expected_length = length;
 
@@ -23,7 +23,7 @@ int pipe_read(void *this, char *buf, unsigned int length){
 	for(position = 0; position < expected_length; position++)
 	{
 		
-		while(pipeCb->r_position == pipeCb->w_position && pipeCb->writer_closed!=1)
+		while(pipeCb->r_position == pipeCb->w_position && pipeCb->writer != NULL)
 		{
 			kernel_broadcast(&pipeCb->has_space);
 			kernel_wait(&pipeCb->has_data, SCHED_PIPE);
@@ -42,7 +42,7 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 
 	pipe_cb *pipeCb = (pipe_cb*) this;
 
-	if(pipeCb->reader_closed == 1 || pipeCb->writer_closed == 1) return -1;
+	if(pipeCb->reader == NULL || pipeCb->writer == NULL) return -1;
 
 	int position;
 	
@@ -51,12 +51,12 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 		
 		/*In order to achieve cyclic BUFFER we need to start writing again in 
 	 	  position 0 once the PIPE_BUFFER_SIZE overflows*/
-		while((pipeCb->w_position+1) % PIPE_BUFFER_SIZE == pipeCb->r_position && pipeCb->reader_closed!=1)
+		while((pipeCb->w_position+1) % PIPE_BUFFER_SIZE == pipeCb->r_position && pipeCb->reader != NULL)
 		{
 			kernel_broadcast(&pipeCb->has_data);
 			kernel_wait(&pipeCb->has_space, SCHED_PIPE);
 		}
-		if(pipeCb->reader_closed == 1 || pipeCb->writer_closed == 1) return -1;
+		if(pipeCb->reader == NULL || pipeCb->writer == NULL) return -1;
 		pipeCb->w_position = (pipeCb->w_position+1) % PIPE_BUFFER_SIZE;
 		pipeCb->BUFFER[pipeCb->w_position] = buf[position];
 	}
@@ -67,9 +67,9 @@ int pipe_write(void *this, const char *buf, unsigned int length){
 
 int pipe_writer_close(void *this){
 	pipe_cb* pipeCb = (pipe_cb*) this;
-	pipeCb->writer_closed = 1;
+	pipeCb->writer = NULL;
 
-	if (pipeCb->reader_closed == 1){
+	if (pipeCb->reader == NULL){
 		free(pipeCb);
 	}else{
 		kernel_broadcast(&pipeCb->has_data);
@@ -79,9 +79,9 @@ int pipe_writer_close(void *this){
 }
 int pipe_reader_close(void *this){
 	pipe_cb* pipeCb = (pipe_cb*) this;
-	pipeCb->reader_closed = 1;
-	
-	if (pipeCb->writer_closed == 1){
+	pipeCb->reader = NULL;
+
+	if (pipeCb->writer == NULL){
 		free(pipeCb);
 	}else{
 		kernel_broadcast(&pipeCb->has_space);
@@ -127,8 +127,6 @@ void initialize_pipe_cb(pipe_t* pipe, Fid_t* fid, FCB** fcb){
 	pipeCb->has_space = COND_INIT;
 	pipeCb->w_position = 0;
 	pipeCb->r_position = 0;
-	pipeCb->writer_closed = 0;
-	pipeCb->reader_closed = 0;
 
 	fcb[0]->streamobj = pipeCb;
 	fcb[1]->streamobj = pipeCb;
