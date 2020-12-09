@@ -56,6 +56,38 @@ typedef struct pipe_control_block{
 	char BUFFER[PIPE_BUFFER_SIZE]; 	/*Bounded (cyclic) byte buffer*/
 }pipe_cb;
 
+typedef enum socket_type{
+    SOCKET_LISTENER,
+    SOCKET_UNBOUND,
+    SOCKET_PEER
+}socket_type;
+
+typedef struct listener_socket{
+	rlnode queue;
+	CondVar req_available;
+}listener_socket;
+
+typedef struct unbound_socket{
+	char placeholder;
+}unbound_socket;
+
+typedef struct socket_control_block socket_cb;
+typedef struct peer_socket{
+	socket_cb* peer;
+	pipe_cb* write_pipe;
+	pipe_cb* read_pipe;
+}peer_socket;
+typedef struct socket_control_block{
+    FCB *fcb;
+    socket_type type;
+    port_t port;
+    unsigned int refcount;
+    union{
+        listener_socket* listener_s;
+        unbound_socket* unbound_s;
+        peer_socket* peer_s;
+    };
+}socket_cb;
 
 /** 
   @brief Initialization for files and streams.
