@@ -18,5 +18,14 @@ running suite: user_tests
         test_system_info                                     [cores= 4,term=0]: ok
         test_system_info                                     [cores= 4,term=1]: ok
         test_system_info                                     [cores= 4,term=2]: ok
-        suite user_tests completed [tests=3, failed=0]
+        test_pipe_reader_close_before_write                  [cores= 1,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 1,term=1]: ok
+        test_pipe_reader_close_before_write                  [cores= 1,term=2]: ok
+        test_pipe_reader_close_before_write                  [cores= 2,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 2,term=1]: ok
+        test_pipe_reader_close_before_write                  [cores= 2,term=2]: ok
+        test_pipe_reader_close_before_write                  [cores= 4,term=0]: ok
+        test_pipe_reader_close_before_write                  [cores= 4,term=1]: ok
+        test_pipe_reader_close_before_write                  [cores= 4,term=2]: ok
+        suite user_tests completed [tests=4, failed=0]
 user_tests                                                            : ok
