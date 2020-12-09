@@ -3,6 +3,8 @@
 #include "kernel_streams.h"
 #include "kernel_cc.h"
 
+socket_cb* portMap[MAX_PORT + 1] = {NULL};
+
 void* invalid_socket_open(uint minor){
   return NULL;
 }
@@ -37,16 +39,37 @@ int socket_complete_shutdown(socket_cb *socketCb){
 			returnValue = pipe_writer_close(socketCb->peer_s->write_pipe);
 			if (returnValue != 0)
 				return returnValue;
+			// break intentionally commented
+		default:
+			socketCb->fcb = NULL;
+			break;
+	}
+	return returnValue;
+}
+
+// TODO
+void signal_all_pending_connections(socket_cb *socketCb){
+	// while (!is_rlist_empty(&socketCb->listener_s->queue)){
+	// 		rlnode* connection = rlist_pop_front(&socketCb->listener_s->queue);
+	// 		kernel_signal(&connection->connected_cv);
+	// }
+}
+
+void release_socket_cb(socket_cb *socketCb){
+	switch (socketCb->type){
+		case SOCKET_PEER:
+			free(socketCb->peer_s);
 			break;
 		case SOCKET_LISTENER:
-			// TODO signal pending connection requests since they won't be admitted
-			// kernel_signal(&socketCb->listener_s->); 
+			portMap[socketCb->port] = NULL;
+			signal_all_pending_connections(socketCb);
+			free(socketCb->listener_s);
 			break;
 		case SOCKET_UNBOUND:
 			// intentionally left blank
 			break;
 	}
-	return returnValue;
+	free(socketCb);
 }
 
 int socket_refcount_decrement(socket_cb *socketCb){
@@ -54,18 +77,7 @@ int socket_refcount_decrement(socket_cb *socketCb){
 	socketCb->refcount--;
 	if (socketCb->refcount == 0){
 		returnVal = socket_complete_shutdown(socketCb);
-		switch (socketCb->type){
-			case SOCKET_PEER:
-				free(socketCb->peer_s);
-				break;
-			case SOCKET_LISTENER:
-				free(socketCb->listener_s);
-				break;
-			case SOCKET_UNBOUND:
-				// intentionally left blank
-				break;
-		}
-		free(socketCb);
+		release_socket_cb(socketCb);
 	}
 	return returnVal;
 }
@@ -100,7 +112,7 @@ Fid_t sys_Socket(port_t port){
 	Fid_t fid;
 	FCB* fcb;
 
-	if (port < 0 || port > MAX_PORT)
+	if (port < NOPORT || port > MAX_PORT)
 		return NOFILE;
 
 	if(! FCB_reserve(1, &fid, &fcb))
@@ -111,9 +123,27 @@ Fid_t sys_Socket(port_t port){
 	return fid;
 }
 
-int sys_Listen(Fid_t sock)
-{
-	return -1;
+socket_cb* get_socket_cb(Fid_t sock){
+	FCB* fcb = get_fcb(sock);
+	return fcb == NULL ? NULL : fcb->streamobj;
+}
+
+void socket_listener_init(socket_cb* socketCb){
+	socketCb->type = SOCKET_LISTENER;
+	socketCb->listener_s = (listener_socket*) xmalloc(sizeof(listener_socket));
+	socketCb->listener_s->req_available = COND_INIT;
+	rlnode_new(&socketCb->listener_s->queue);
+	portMap[socketCb->port] = socketCb;
+}
+
+int sys_Listen(Fid_t sock){
+	socket_cb* socketCb = get_socket_cb(sock);
+
+	if (socketCb == NULL || socketCb->port == NOPORT || socketCb->type != SOCKET_UNBOUND || portMap[socketCb->port] != NULL)
+		return -1;
+
+	socket_listener_init(socketCb);
+  	return 0;
 }
 
 
@@ -127,12 +157,6 @@ int sys_Connect(Fid_t sock, port_t port, timeout_t timeout)
 {
 	return -1;
 }
-
-socket_cb* get_socket_cb(Fid_t sock){
-	FCB* fcb = get_fcb(sock);
-	return fcb == NULL ? NULL : fcb->streamobj;
-}
-
 
 int sys_ShutDown(Fid_t sock, shutdown_mode how){
 	socket_cb* socketCb = get_socket_cb(sock);
