@@ -89,6 +89,13 @@ typedef struct socket_control_block{
     };
 }socket_cb;
 
+typedef struct socket_connection_request{
+	int admitted;
+	socket_cb* peer;
+	CondVar connected_cv;
+	rlnode queue_node;
+}connection_r;
+
 /** 
   @brief Initialization for files and streams.
 
