@@ -168,6 +168,14 @@ void FCB_unreserve(size_t num, Fid_t *fid, FCB** fcb);
  */
 FCB* get_fcb(Fid_t fid);
 
+int pipe_reader_close(void *this);
+
+int pipe_writer_close(void *this);
+
+int pipe_read(void *this, char *buf, unsigned int length);
+
+int pipe_write(void *this, const char *buf, unsigned int length);
+
 
 /** @} */
 
