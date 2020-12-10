@@ -6,56 +6,23 @@ running suite: socket_tests
         test_listen_fails_on_bad_fid                         [cores= 2,term=2]: ok
         test_listen_fails_on_NOPORT                          [cores= 2,term=2]: ok
         test_listen_fails_on_occupied_port                   [cores= 2,term=2]: ok
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_listen_fails_on_initialized_socket              [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_accept_succeds                                  [cores= 2,term=2]: *** FAILED ***
+        test_listen_fails_on_initialized_socket              [cores= 2,term=2]: ok
+        test_accept_succeds                                  [cores= 2,term=2]: ok
         test_accept_fails_on_bad_fid                         [cores= 2,term=2]: ok
         test_accept_fails_on_unbound_socket                  [cores= 2,term=2]: ok
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_accept_fails_on_connected_socket                [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_accept_reusable                                 [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_accept_fails_on_exhausted_fid                   [cores= 2,term=2]: *** FAILED ***
+        test_accept_fails_on_connected_socket                [cores= 2,term=2]: ok
+        test_accept_reusable                                 [cores= 2,term=2]: ok
+newPeerFid == NOFILE        test_accept_fails_on_exhausted_fid                   [cores= 2,term=2]: ok
         test_accept_unblocks_on_close                        [cores= 2,term=2]: ok
         test_connect_fails_on_bad_fid                        [cores= 2,term=2]: ok
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_connect_fails_on_bad_socket                     [cores= 2,term=2]: *** FAILED ***
+        test_connect_fails_on_bad_socket                     [cores= 2,term=2]: ok
         test_connect_fails_on_illegal_port                   [cores= 2,term=2]: ok
         test_connect_fails_on_non_listened_port              [cores= 2,term=2]: ok
         test_connect_fails_on_timeout                        [cores= 2,term=2]: ok
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_socket_small_transfer                           [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_socket_single_producer                          [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_socket_multi_producer                           [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_shudown_read                                    [cores= 2,term=2]: *** FAILED ***
-        validate_api.c(1568): ASSERT failed: Connect(sock1, port, 1000)==0 
-        Test timed out
-        Test crashed, signal=15 (Terminated)
-        test_shudown_write                                   [cores= 2,term=2]: *** FAILED ***
-        suite socket_tests completed [tests=25, failed=11]
-socket_tests                                                          : *** FAILED ***
+        test_socket_small_transfer                           [cores= 2,term=2]: ok
+        test_socket_single_producer                          [cores= 2,term=2]: ok
+        test_socket_multi_producer                           [cores= 2,term=2]: ok
+        test_shudown_read                                    [cores= 2,term=2]: ok
+        test_shudown_write                                   [cores= 2,term=2]: ok
+        suite socket_tests completed [tests=25, failed=0]
+socket_tests                                                          : ok

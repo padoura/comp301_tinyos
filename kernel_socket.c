@@ -176,7 +176,7 @@ void connect_peers(Fid_t serverPeerFid, socket_cb* clientPeer){
 	// read end: server, write end: client
 	Fid_t fid[2];
 	FCB* fcb[2];
-	pipe_t* pipe_client_server = NULL;
+	pipe_t pipe_client_server;
 	fid[0] = serverPeerFid;
 	fid[1] = get_fid(&clientPeer->fcb);
 	fcb[0] = serverPeer->fcb;
@@ -186,7 +186,7 @@ void connect_peers(Fid_t serverPeerFid, socket_cb* clientPeer){
 	clientPeer->peer_s->write_pipe = pipeCb;
 
 	// read end: client, write end: server
-	pipe_t* pipe_server_client = NULL;
+	pipe_t pipe_server_client;
 	fid[0] = fid[1]; //get_fid(&clientPeer->fcb);
 	fid[1] = serverPeerFid;
 	fcb[0] = clientPeer->fcb;
@@ -226,10 +226,34 @@ Fid_t sys_Accept(Fid_t lsock){
 	return newPeerFid;
 }
 
+connection_r* establish_connection_request(socket_cb* connectingCb, socket_cb* listeningCb){
+	connection_r* request = (connection_r*) xmalloc(sizeof(connection_r));
+	request->admitted = 0;
+	request->connected_cv = COND_INIT;
+	request->peer = connectingCb;
 
-int sys_Connect(Fid_t sock, port_t port, timeout_t timeout)
-{
-	return -1;
+	rlist_push_back(&listeningCb->listener_s->queue, rlnode_init(&request->queue_node, request));
+	return request;
+}
+
+
+int sys_Connect(Fid_t sock, port_t port, timeout_t timeout){
+	socket_cb* connectingCb = get_socket_cb(sock);
+
+	if (connectingCb == NULL || connectingCb->port < NOPORT || connectingCb->port > MAX_PORT
+		|| connectingCb->type != SOCKET_UNBOUND || portMap[port] == NULL || portMap[port]->type != SOCKET_LISTENER)
+		return -1;
+
+	connectingCb->refcount++;
+
+	socket_cb* listeningCb = portMap[port];
+	connection_r* request = establish_connection_request(connectingCb, listeningCb);
+
+	kernel_signal(&listeningCb->listener_s->req_available);
+
+	kernel_timedwait(&request->connected_cv, SCHED_USER, timeout);
+
+	return request->admitted - 1;
 }
 
 int sys_ShutDown(Fid_t sock, shutdown_mode how){
