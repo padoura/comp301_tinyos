@@ -33,12 +33,15 @@ int socket_complete_shutdown(socket_cb *socketCb){
 	int returnValue = 0;
 	switch (socketCb->type){
 		case SOCKET_PEER:
-			returnValue = pipe_reader_close(socketCb->peer_s->read_pipe);
-			if (returnValue != 0)
-				return returnValue;
-			returnValue = pipe_writer_close(socketCb->peer_s->write_pipe);
-			if (returnValue != 0)
-				return returnValue;
+			if (socketCb->peer_s->peer != NULL){ // prevent double free from peer
+				returnValue = pipe_reader_close(socketCb->peer_s->read_pipe);
+				if (returnValue != 0)
+					return returnValue;
+				returnValue = pipe_writer_close(socketCb->peer_s->write_pipe);
+				if (returnValue != 0)
+					return returnValue;
+				socketCb->peer_s->peer->peer_s->peer = NULL;
+			}
 			// break intentionally commented
 		default:
 			socketCb->fcb = NULL;
@@ -253,7 +256,11 @@ int sys_Connect(Fid_t sock, port_t port, timeout_t timeout){
 
 	kernel_timedwait(&request->connected_cv, SCHED_USER, timeout);
 
-	return request->admitted - 1;
+	int admitted = request->admitted;
+
+	socket_refcount_decrement(connectingCb);
+	free(request);
+	return admitted - 1;
 }
 
 int sys_ShutDown(Fid_t sock, shutdown_mode how){
