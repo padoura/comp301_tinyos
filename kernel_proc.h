@@ -87,6 +87,7 @@ typedef struct process_thread_control_block {
 
   int exited;             /**< @brief Boolean (0, 1) for thread's exit status */
   int detached;           /**< @brief Boolean (0, 1) for thread's unjoinable status */
+  int joined;           /**< @brief Boolean (0, 1) for thread's joined status */
 
   int refcount;           /**< @brief Reference counter for other threads waiting this one.
   

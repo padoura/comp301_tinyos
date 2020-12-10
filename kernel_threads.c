@@ -20,6 +20,7 @@ PTCB* initialize_ptcb(Task call, int argl, void* args)
   
 	ptcb->exited = 0;
 	ptcb->detached = 0;
+	ptcb->joined = 0;
 	ptcb->refcount = 0;
 
 	ptcb->exit_cv = COND_INIT;
@@ -107,21 +108,19 @@ void ptcb_refcount_decrement(PTCB* ptcb){
 int sys_ThreadJoin(Tid_t tid, int* exitval)
 {
   rlnode *node = rlist_find((&CURPROC->ptcb_list), (PTCB*)tid, NULL);
-  if(node == NULL || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb)
+  if(node == NULL || node->ptcb->detached == 1 || (PTCB*)tid == CURTHREAD->ptcb || node->ptcb->joined == 1)
       return -1;
-  if(node->ptcb->exited == 1){
-    if(exitval != NULL)
-      *exitval = node->ptcb->exitval;
-    return 0;
-  }
   node->ptcb->refcount++;
   while(node->ptcb->exited != 1){
     kernel_wait(&(node->ptcb->exit_cv), SCHED_USER);
-    if(node->ptcb->detached == 1)
+    if(node->ptcb->detached == 1){
+      ptcb_refcount_decrement(node->ptcb);
       return -1;
+    }
   }
   if(exitval != NULL)
     *exitval = node->ptcb->exitval;
+  node->ptcb->joined = 1;
   ptcb_refcount_decrement(node->ptcb);
   return 0;
 }
