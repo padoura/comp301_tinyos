@@ -146,10 +146,81 @@ int sys_Listen(Fid_t sock){
   	return 0;
 }
 
+connection_r* wait_for_connection(socket_cb* listeningCb){
+	while (is_rlist_empty(&listeningCb->listener_s->queue)){
+		kernel_wait(&listeningCb->listener_s->req_available, SCHED_USER);
+	}
 
-Fid_t sys_Accept(Fid_t lsock)
-{
-	return NOFILE;
+	if (listeningCb->fcb == NULL){
+		return NULL;
+	}
+	return (connection_r*) rlist_pop_front(&listeningCb->listener_s->queue)->request;
+}
+
+void connect_peers(Fid_t serverPeerFid, socket_cb* clientPeer){
+
+	//initialize serverPeer
+	socket_cb* serverPeer = get_socket_cb(serverPeerFid);
+	serverPeer->type = SOCKET_PEER;
+	serverPeer->peer_s = (peer_socket*) xmalloc(sizeof(peer_socket));
+	serverPeer->peer_s->peer = clientPeer;
+
+	//initialize clientPeer
+	clientPeer->type = SOCKET_PEER;
+	clientPeer->peer_s = (peer_socket*) xmalloc(sizeof(peer_socket));
+	clientPeer->peer_s->peer = serverPeer;	
+
+	// read end: server, write end: client
+	Fid_t fid[2];
+	FCB* fcb[2];
+	pipe_t* pipe_client_server = NULL;
+	fid[0] = serverPeerFid;
+	fid[1] = get_fid(&clientPeer->fcb);
+	fcb[0] = serverPeer->fcb;
+	fcb[1] = clientPeer->fcb;
+	pipe_cb* pipeCb = initialize_pipe_cb(&pipe_client_server, fid, fcb);
+	serverPeer->peer_s->read_pipe = pipeCb;
+	clientPeer->peer_s->write_pipe = pipeCb;
+
+	// read end: client, write end: server
+	pipe_t* pipe_server_client = NULL;
+	fid[0] = fid[1]; //get_fid(&clientPeer->fcb);
+	fid[1] = serverPeerFid;
+	fcb[0] = clientPeer->fcb;
+	fcb[1] = serverPeer->fcb;
+	pipeCb = initialize_pipe_cb(&pipe_server_client, fid, fcb);
+	clientPeer->peer_s->read_pipe = pipeCb;
+	serverPeer->peer_s->write_pipe = pipeCb;
+}
+
+
+Fid_t sys_Accept(Fid_t lsock){
+	socket_cb* listeningCb = get_socket_cb(lsock);
+
+	if (listeningCb == NULL || listeningCb->type != SOCKET_LISTENER)
+		return NOFILE;
+
+	listeningCb->refcount++;
+
+	Fid_t newPeerFid = sys_Socket(listeningCb->port);
+	if (newPeerFid == NOFILE){
+		fprintf(stderr, "newPeerFid == NOFILE");
+		return NOFILE;
+	}
+	
+	connection_r* request = wait_for_connection(listeningCb);
+	if (request == NULL){
+		return NOFILE;
+	}
+
+	connect_peers(newPeerFid, request->peer);
+
+	request->admitted = 1;
+	kernel_signal(&request->connected_cv);
+
+	socket_refcount_decrement(listeningCb);
+	
+	return newPeerFid;
 }
 
 

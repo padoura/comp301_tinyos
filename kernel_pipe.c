@@ -116,7 +116,7 @@ static file_ops reader_file_ops = {
 	.Read = pipe_read
 };
 
-void initialize_pipe_cb(pipe_t* pipe, Fid_t* fid, FCB** fcb){
+pipe_cb* initialize_pipe_cb(pipe_t* pipe, Fid_t* fid, FCB** fcb){
 	pipe->read = fid[0];
 	pipe->write = fid[1];
 
@@ -127,12 +127,8 @@ void initialize_pipe_cb(pipe_t* pipe, Fid_t* fid, FCB** fcb){
 	pipeCb->has_space = COND_INIT;
 	pipeCb->w_position = 0;
 	pipeCb->r_position = 0;
-
-	fcb[0]->streamobj = pipeCb;
-	fcb[1]->streamobj = pipeCb;
-
-	fcb[0]->streamfunc = &reader_file_ops;
-	fcb[1]->streamfunc = &writer_file_ops;
+	
+	return pipeCb;
 }
 
 int sys_Pipe(pipe_t* pipe)
@@ -143,7 +139,12 @@ int sys_Pipe(pipe_t* pipe)
 	if(! FCB_reserve(2, fid, fcb))
 		return -1;
 	
-  	initialize_pipe_cb(pipe, fid, fcb);
+  	pipe_cb* pipeCb = initialize_pipe_cb(pipe, fid, fcb);
+	fcb[0]->streamobj = pipeCb;
+	fcb[1]->streamobj = pipeCb;
+
+	fcb[0]->streamfunc = &reader_file_ops;
+	fcb[1]->streamfunc = &writer_file_ops;
 
 	return 0;
 }

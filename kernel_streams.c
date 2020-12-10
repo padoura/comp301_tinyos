@@ -127,6 +127,9 @@ FCB* get_fcb(Fid_t fid)
   return CURPROC->FIDT[fid];
 }
 
+Fid_t get_fid(FCB** fcb){
+  return fcb==NULL ? NOFILE : fcb - CURPROC->FIDT;
+}
 
 int sys_Read(Fid_t fd, char *buf, unsigned int size)
 {
