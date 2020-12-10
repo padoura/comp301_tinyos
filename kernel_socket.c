@@ -5,6 +5,12 @@
 
 socket_cb* portMap[MAX_PORT + 1] = {NULL};
 
+/*******************************************
+ *
+ * Read/Write/Close
+ *
+ *******************************************/
+
 void* invalid_socket_open(uint minor){
   return NULL;
 }
@@ -50,14 +56,6 @@ int socket_complete_shutdown(socket_cb *socketCb){
 	return returnValue;
 }
 
-// TODO
-void signal_all_pending_connections(socket_cb *socketCb){
-	// while (!is_rlist_empty(&socketCb->listener_s->queue)){
-	// 		rlnode* connection = rlist_pop_front(&socketCb->listener_s->queue);
-	// 		kernel_signal(&connection->connected_cv);
-	// }
-}
-
 void release_socket_cb(socket_cb *socketCb){
 	switch (socketCb->type){
 		case SOCKET_PEER:
@@ -65,7 +63,6 @@ void release_socket_cb(socket_cb *socketCb){
 			break;
 		case SOCKET_LISTENER:
 			portMap[socketCb->port] = NULL;
-			signal_all_pending_connections(socketCb);
 			free(socketCb->listener_s);
 			break;
 		case SOCKET_UNBOUND:
@@ -100,6 +97,12 @@ static file_ops socket_file_ops = {
 	.Read = socket_read
 };
 
+/*******************************************
+ *
+ * sys_Socket
+ *
+ *******************************************/
+
 void initialize_socket_cb(port_t port, FCB* fcb){
 	socket_cb* socketCb = (socket_cb*) xmalloc(sizeof(socket_cb));
 	socketCb->refcount = 1;
@@ -129,6 +132,12 @@ Fid_t sys_Socket(port_t port){
 	return fid;
 }
 
+/*******************************************
+ *
+ * sys_Listen
+ *
+ *******************************************/
+
 socket_cb* get_socket_cb(Fid_t sock){
 	FCB* fcb = get_fcb(sock);
 	return fcb == NULL ? NULL : fcb->streamobj;
@@ -151,6 +160,12 @@ int sys_Listen(Fid_t sock){
 	socket_listener_init(socketCb);
   	return 0;
 }
+
+/*******************************************
+ *
+ * sys_Accept
+ *
+ *******************************************/
 
 connection_r* wait_for_connection(socket_cb* listeningCb){
 	while (is_rlist_empty(&listeningCb->listener_s->queue) && listeningCb->fcb != NULL){
@@ -229,6 +244,12 @@ Fid_t sys_Accept(Fid_t lsock){
 	return newPeerFid;
 }
 
+/*******************************************
+ *
+ * sys_Connect
+ *
+ *******************************************/
+
 connection_r* establish_connection_request(socket_cb* connectingCb, socket_cb* listeningCb){
 	connection_r* request = (connection_r*) xmalloc(sizeof(connection_r));
 	request->admitted = 0;
@@ -262,6 +283,12 @@ int sys_Connect(Fid_t sock, port_t port, timeout_t timeout){
 	free(request);
 	return admitted - 1;
 }
+
+/*******************************************
+ *
+ * sys_ShutDown
+ *
+ *******************************************/
 
 int sys_ShutDown(Fid_t sock, shutdown_mode how){
 	socket_cb* socketCb = get_socket_cb(sock);
