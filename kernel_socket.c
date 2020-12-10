@@ -75,6 +75,8 @@ void release_socket_cb(socket_cb *socketCb){
 int socket_refcount_decrement(socket_cb *socketCb){
 	int returnVal = 0;
 	socketCb->refcount--;
+	if (socketCb->type == SOCKET_LISTENER)
+		kernel_signal(&socketCb->listener_s->req_available);
 	if (socketCb->refcount == 0){
 		returnVal = socket_complete_shutdown(socketCb);
 		release_socket_cb(socketCb);
@@ -84,6 +86,7 @@ int socket_refcount_decrement(socket_cb *socketCb){
 
 int socket_close(void *this){
 	socket_cb *socketCb = (socket_cb*) this;
+	socketCb->fcb = NULL;
 	return socket_refcount_decrement(socketCb);
 }
 
@@ -147,14 +150,14 @@ int sys_Listen(Fid_t sock){
 }
 
 connection_r* wait_for_connection(socket_cb* listeningCb){
-	while (is_rlist_empty(&listeningCb->listener_s->queue)){
+	while (is_rlist_empty(&listeningCb->listener_s->queue) && listeningCb->fcb != NULL){
 		kernel_wait(&listeningCb->listener_s->req_available, SCHED_USER);
 	}
 
 	if (listeningCb->fcb == NULL){
 		return NULL;
 	}
-	return (connection_r*) rlist_pop_front(&listeningCb->listener_s->queue)->request;
+	return rlist_pop_front(&listeningCb->listener_s->queue)->request;
 }
 
 void connect_peers(Fid_t serverPeerFid, socket_cb* clientPeer){
