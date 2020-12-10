@@ -56,6 +56,45 @@ typedef struct pipe_control_block{
 	char BUFFER[PIPE_BUFFER_SIZE]; 	/*Bounded (cyclic) byte buffer*/
 }pipe_cb;
 
+typedef enum socket_type{
+    SOCKET_LISTENER,
+    SOCKET_UNBOUND,
+    SOCKET_PEER
+}socket_type;
+
+typedef struct listener_socket{
+	rlnode queue;
+	CondVar req_available;
+}listener_socket;
+
+typedef struct unbound_socket{
+	char placeholder;
+}unbound_socket;
+
+typedef struct socket_control_block socket_cb;
+typedef struct peer_socket{
+	socket_cb* peer;
+	pipe_cb* write_pipe;
+	pipe_cb* read_pipe;
+}peer_socket;
+typedef struct socket_control_block{
+    FCB *fcb;
+    socket_type type;
+    port_t port;
+    unsigned int refcount;
+    union{
+        listener_socket* listener_s;
+        unbound_socket* unbound_s;
+        peer_socket* peer_s;
+    };
+}socket_cb;
+
+typedef struct socket_connection_request{
+	int admitted;
+	socket_cb* peer;
+	CondVar connected_cv;
+	rlnode queue_node;
+}connection_r;
 
 /** 
   @brief Initialization for files and streams.
@@ -135,6 +174,18 @@ void FCB_unreserve(size_t num, Fid_t *fid, FCB** fcb);
 	@returns a pointer to the corresponding FCB, or NULL.
  */
 FCB* get_fcb(Fid_t fid);
+
+Fid_t get_fid(FCB** fcb);
+
+int pipe_reader_close(void *this);
+
+int pipe_writer_close(void *this);
+
+int pipe_read(void *this, char *buf, unsigned int length);
+
+int pipe_write(void *this, const char *buf, unsigned int length);
+
+pipe_cb* initialize_pipe_cb(pipe_t* pipe, Fid_t* fid, FCB** fcb);
 
 
 /** @} */
